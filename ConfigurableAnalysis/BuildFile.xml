@@ -1,0 +1,15 @@
+<use   name="FWCore/Framework"/>
+<use   name="FWCore/PluginManager"/>
+<use   name="FWCore/ParameterSet"/>
+<use   name="PhysicsTools/Utilities"/>
+<use   name="CommonTools/UtilAlgos"/>
+<use   name="PhysicsTools/UtilAlgos"/>
+<use   name="PhysicsTools/HepMCCandAlgos"/>
+<use   name="DataFormats/PatCandidates"/>
+<use   name="DataFormats/L1Trigger"/>
+<use   name="DataFormats/JetReco"/>
+<use   name="root"/>
+<use   name="RecoEgamma/EgammaTools"/>
+<export>
+  <lib   name="1"/>
+</export>
