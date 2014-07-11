@@ -729,6 +729,11 @@ configurableAnalysis = cms.EDFilter("ConfigurableAnalysis",
                 leaves = cms.PSet(
                     basicKinematicLeaves,
                     vars = cms.vstring(#'id:leptonID', 
+                        'pfIsolationR03_sumChargedHadronPt:pfIsolationVariables.sumChargedHadronPt',
+                        'pfIsolationR03_sumNeutralHadronEt:pfIsolationVariables.sumNeutralHadronEt',
+                        'pfIsolationR03_sumPhotonEt:pfIsolationVariables.sumPhotonEt',
+                        'pfIsolationR03_sumPUPt:pfIsolationVariables.sumPUPt',
+                        'full5x5_sigmaIetaIeta:full5x5_sigmaIetaIeta',
                         'gen_id:genLepton.pdgId',
                         'gen_phi:genLepton.phi',
                         'gen_pt:genLepton.pt',
@@ -932,11 +937,20 @@ configurableAnalysis = cms.EDFilter("ConfigurableAnalysis",
           pfcand = cms.PSet(
                 src = cms.InputTag('packedPFCandidates'),
                 leaves = cms.PSet(
-                    basicKinematicLeaves,
                     vars = cms.vstring(
                         'pdgId:pdgId',
-                    )
+                        'pt:pt',
+                        'pz:pz',
+                        'px:px',
+                        'py:py',
+                        'eta:eta',
+                        'phi:phi',
+                        'theta:theta',
+                        'energy:energy',
+                        'charge:charge'
+                     )
                 ),
+                selection = cms.string('pt>10'),
                 Class = cms.string('pat::PackedCandidate')
             ),
         ),
