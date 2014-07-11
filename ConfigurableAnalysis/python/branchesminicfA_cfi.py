@@ -941,6 +941,7 @@ configurableAnalysis = cms.EDFilter("ConfigurableAnalysis",
             ),
         ),
         ComponentName = cms.string('CompleteNTupler'),
+        AdHocNPSet = cms.PSet(treeName = cms.string('eventA')),
         useTFileService = cms.bool(True), ## false for EDM; true for non EDM
     )
 )
