@@ -28,6 +28,7 @@
 
 #include <DataFormats/PatCandidates/interface/PFParticle.h>
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
+#include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
 #include <SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h>
 
 
@@ -68,6 +69,7 @@ TreeBranch::value TreeBranch::branch(const edm::Event& iEvent){
   else ANOTHER_VECTOR_CLASS(reco::CaloCluster);
   else ANOTHER_VECTOR_CLASS(reco::Photon);
   else ANOTHER_VECTOR_CLASS(pat::PackedCandidate);
+  else ANOTHER_VECTOR_CLASS(pat::PackedGenParticle);
   else {
     edm::LogError("TreeBranch")<<branchName()<<" failed to recognized class type: "<<class_;
     return TreeBranch::value(new std::vector<float>());

@@ -458,6 +458,36 @@ configurableAnalysis = cms.EDFilter("ConfigurableAnalysis",
                 Class = cms.string('reco::GenParticle')
             ),
 
+            mc_final = cms.PSet(
+                src = cms.InputTag("packedGenParticles"),
+                leaves = cms.PSet(
+                    vars = cms.vstring(
+                        'id:pdgId',
+                        'pt:pt',
+                        'px:px',
+                        'py:py',
+                        'pz:pz',
+                        'eta:eta',
+                        'phi:phi',
+                        'theta:theta',
+                        'energy:energy',
+                        'status:status',
+                        'charge:charge',
+                        'mother_id:mother.pdgId',
+                        'grandmother_id:mother.mother.pdgId',
+                        'ggrandmother_id:mother.mother.mother.pdgId',
+                        'mother_pt:mother.pt',
+                        'vertex_x:vertex.x',
+                        'vertex_y:vertex.y',
+                        'vertex_z:vertex.z',
+                        'mass:mass',
+                        'numOfDaughters:numberOfDaughters',
+                        'numOfMothers:numberOfMothers'
+                    )
+                ),
+                Class = cms.string('pat::PackedGenParticle')
+            ),
+
              mc_mus = cms.PSet(
                 src = cms.InputTag("prunedGenParticles"),
                 leaves = cms.PSet(
