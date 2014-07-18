@@ -22,7 +22,7 @@ CfANtupler package with the http protocol
 
     git clone http://github.com/manuelfs/CfANtupler
 
-### Adding/changing tree content
+#### Adding/changing tree content
 Most of the branches are defined in `CfANtupler/ConfigurableAnalysis/python/branchesminicfA_cfi.py`. 
 You can easily modify the leaves parameter to add a branch with the format
 `'name:member'`, where `name` will be the name of the branch, and `member` must
