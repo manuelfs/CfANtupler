@@ -1,3 +1,6 @@
+// ADHOCNTUPLER: Creates eventA in the cfA ntuples, the tree that requires
+//               Ad hoc c++ code to be filled.
+
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Framework/interface/Run.h"
 #include "FWCore/Utilities/interface/Exception.h"
@@ -11,6 +14,8 @@
 #include "DataFormats/PatCandidates/interface/TriggerAlgorithm.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/PatCandidates/interface/PackedTriggerPrescales.h"
+#include "DataFormats/PatCandidates/interface/TriggerObjectStandAlone.h"
+#include "DataFormats/L1GlobalTrigger/interface/L1GlobalTriggerReadoutRecord.h"
 
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "DataFormats/HcalRecHit/interface/HBHERecHit.h"
@@ -48,12 +53,53 @@ class AdHocNTupler : public NTupler {
       (*trigger_prescalevalue).push_back(triggerPrescales->getPrescaleForIndex(i));
     }
    
+    // HLT trigger objects
+    edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
+    edm::InputTag labtriggerObjects("selectedPatTrigger");
+    iEvent.getByLabel(labtriggerObjects,triggerObjects);  
 
-   //fill the tree    
+    for (pat::TriggerObjectStandAlone obj : *triggerObjects) { // note: not "const &" since we want to call unpackPathNames
+      obj.unpackPathNames(names);
+      (*standalone_triggerobject_collectionname).push_back(obj.collection()); 
+      (*standalone_triggerobject_pt).push_back(obj.pt());
+      (*standalone_triggerobject_px).push_back(obj.px());
+      (*standalone_triggerobject_py).push_back(obj.py());
+      (*standalone_triggerobject_pz).push_back(obj.pz());
+      (*standalone_triggerobject_et).push_back(obj.et());
+      (*standalone_triggerobject_energy).push_back(obj.energy());
+      (*standalone_triggerobject_phi).push_back(obj.phi());
+      (*standalone_triggerobject_eta).push_back(obj.eta());
+    }
+
+    // L1 trigger objects --- TO BE UNDERSTOOD ---
+    edm::Handle<L1GlobalTriggerReadoutRecord> L1trigger_h;
+    edm::InputTag labL1trigger("gtDigis","","HLT");
+    iEvent.getByLabel(labL1trigger, L1trigger_h);  
+
+    std::vector<bool> gtbits;
+    int ngtbits = 128;
+    gtbits.reserve(ngtbits); for(int i=0; i<ngtbits; i++) gtbits[i]=false;
+    if(L1trigger_h.isValid()) 
+      gtbits = L1trigger_h->decisionWord();
+    for(int i=0; i<ngtbits; i++) if(gtbits[i]) cout<<"Bit "<<i<<" is true"<<endl;
+
+    const L1GlobalTriggerReadoutRecord* L1trigger = L1trigger_h.failedToGet () ? 0 : &*L1trigger_h;
+    if(L1trigger) cout<<"Level 1 decision: "<<L1trigger->decision()<<endl;
+
+    //fill the tree    
     if (ownTheTree_){ tree_->Fill(); }
     (*trigger_name).clear();
     (*trigger_decision).clear();
     (*trigger_prescalevalue).clear();
+    (*standalone_triggerobject_pt).clear();
+    (*standalone_triggerobject_px).clear();
+    (*standalone_triggerobject_py).clear();
+    (*standalone_triggerobject_pz).clear();
+    (*standalone_triggerobject_et).clear();
+    (*standalone_triggerobject_energy).clear();
+    (*standalone_triggerobject_phi).clear();
+    (*standalone_triggerobject_eta).clear();
+    (*standalone_triggerobject_collectionname).clear();
   }
 
   uint registerleaves(edm::ProducerBase * producer){
@@ -80,6 +126,15 @@ class AdHocNTupler : public NTupler {
       tree_->Branch("trigger_decision",&trigger_decision);
       tree_->Branch("trigger_name",&trigger_name);
       tree_->Branch("trigger_prescalevalue",&trigger_prescalevalue);
+      tree_->Branch("standalone_triggerobject_pt",&standalone_triggerobject_pt);
+      tree_->Branch("standalone_triggerobject_px",&standalone_triggerobject_px);
+      tree_->Branch("standalone_triggerobject_py",&standalone_triggerobject_py);
+      tree_->Branch("standalone_triggerobject_pz",&standalone_triggerobject_pz);
+      tree_->Branch("standalone_triggerobject_et",&standalone_triggerobject_et);
+      tree_->Branch("standalone_triggerobject_energy",&standalone_triggerobject_energy);
+      tree_->Branch("standalone_triggerobject_phi",&standalone_triggerobject_phi);
+      tree_->Branch("standalone_triggerobject_eta",&standalone_triggerobject_eta);
+      tree_->Branch("standalone_triggerobject_collectionname",&standalone_triggerobject_collectionname);
     }
 
     else{
@@ -118,6 +173,15 @@ class AdHocNTupler : public NTupler {
     trigger_decision = new std::vector<bool>;
     trigger_name = new std::vector<std::string>;
     trigger_prescalevalue = new std::vector<float>;
+    standalone_triggerobject_pt = new std::vector<float>;
+    standalone_triggerobject_px = new std::vector<float>;
+    standalone_triggerobject_py = new std::vector<float>;
+    standalone_triggerobject_pz = new std::vector<float>;
+    standalone_triggerobject_et = new std::vector<float>;
+    standalone_triggerobject_energy = new std::vector<float>;
+    standalone_triggerobject_phi = new std::vector<float>;
+    standalone_triggerobject_eta = new std::vector<float>;
+    standalone_triggerobject_collectionname = new std::vector<std::string>;
 
   }
 
@@ -125,6 +189,15 @@ class AdHocNTupler : public NTupler {
     delete trigger_decision;
     delete trigger_name;
     delete trigger_prescalevalue;
+    delete standalone_triggerobject_pt;
+    delete standalone_triggerobject_px;
+    delete standalone_triggerobject_py;
+    delete standalone_triggerobject_pz;
+    delete standalone_triggerobject_et;
+    delete standalone_triggerobject_energy;
+    delete standalone_triggerobject_phi;
+    delete standalone_triggerobject_eta;
+    delete standalone_triggerobject_collectionname;
   }
 
  private:
@@ -135,5 +208,14 @@ class AdHocNTupler : public NTupler {
   std::vector<bool> * trigger_decision;
   std::vector<std::string> * trigger_name;
   std::vector<float> * trigger_prescalevalue;
-
+  std::vector<float> * standalone_triggerobject_pt;
+  std::vector<float> * standalone_triggerobject_px;
+  std::vector<float> * standalone_triggerobject_py;
+  std::vector<float> * standalone_triggerobject_pz;
+  std::vector<float> * standalone_triggerobject_et;
+  std::vector<float> * standalone_triggerobject_energy;
+  std::vector<float> * standalone_triggerobject_phi;
+  std::vector<float> * standalone_triggerobject_eta;
+  std::vector<std::string> * standalone_triggerobject_collectionname;
+ 
 };
