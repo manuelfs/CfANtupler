@@ -28,6 +28,7 @@
 #include "DataFormats/PatCandidates/interface/Jet.h"
 
 #include "SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h"
+#include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h" 
 
 using namespace std;
 
@@ -36,12 +37,35 @@ class AdHocNTupler : public NTupler {
 
   void fill(edm::Event& iEvent){
 
-    // Trigger decisions and names
+    //////////////// Pile up information //////////////////
+    if(!iEvent.isRealData()) { //Access PU info in MC
+      edm::Handle<std::vector< PileupSummaryInfo > >  PupInfo;
+      iEvent.getByLabel("addPileupInfo", PupInfo);
+      std::vector<PileupSummaryInfo>::const_iterator PVI;
+
+      for(PVI = PupInfo->begin(); PVI != PupInfo->end(); ++PVI) {
+	// cout << " PU Information: bunch crossing " << PVI->getBunchCrossing() 
+	//      << ", NumInteractions " << PVI->getPU_NumInteractions() 
+	//      << ", TrueNumInteractions " << PVI->getTrueNumInteractions() 
+	//      <<", evend ID   "<< iEvent.id().event() << std::endl;
+	(*PU_NumInteractions_).push_back(PVI->getPU_NumInteractions());
+	(*PU_bunchCrossing_).push_back(PVI->getBunchCrossing());
+	(*PU_TrueNumInteractions_).push_back(PVI->getTrueNumInteractions());
+	(*PU_zpositions_).push_back(PVI->getPU_zpositions());
+	(*PU_sumpT_lowpT_).push_back(PVI->getPU_sumpT_lowpT());
+	(*PU_sumpT_highpT_).push_back(PVI->getPU_sumpT_highpT());
+	(*PU_ntrks_lowpT_).push_back(PVI->getPU_ntrks_lowpT());
+	(*PU_ntrks_highpT_).push_back(PVI->getPU_ntrks_highpT());
+      }
+    } // if it's not real data
+
+
+    //////////////// Trigger decisions and names //////////////////
     edm::Handle<edm::TriggerResults> triggerBits;
     edm::InputTag labtriggerBits("TriggerResults","","HLT");
     iEvent.getByLabel(labtriggerBits,triggerBits);  
 
-    // Trigger prescales
+    //////////////// Trigger prescales //////////////////
     edm::Handle<pat::PackedTriggerPrescales> triggerPrescales;
     edm::InputTag labtriggerPrescales("patTrigger");
     iEvent.getByLabel(labtriggerPrescales,triggerPrescales);  
@@ -53,7 +77,7 @@ class AdHocNTupler : public NTupler {
       (*trigger_prescalevalue).push_back(triggerPrescales->getPrescaleForIndex(i));
     }
    
-    // HLT trigger objects
+    //////////////// HLT trigger objects //////////////////
     edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
     edm::InputTag labtriggerObjects("selectedPatTrigger");
     iEvent.getByLabel(labtriggerObjects,triggerObjects);  
@@ -71,7 +95,7 @@ class AdHocNTupler : public NTupler {
       (*standalone_triggerobject_eta).push_back(obj.eta());
     }
 
-    // L1 trigger objects --- TO BE UNDERSTOOD ---
+    //////////////// L1 trigger objects --- TO BE UNDERSTOOD ---
     edm::Handle<L1GlobalTriggerReadoutRecord> L1trigger_h;
     edm::InputTag labL1trigger("gtDigis","","HLT");
     iEvent.getByLabel(labL1trigger, L1trigger_h);  
@@ -100,6 +124,15 @@ class AdHocNTupler : public NTupler {
     (*standalone_triggerobject_phi).clear();
     (*standalone_triggerobject_eta).clear();
     (*standalone_triggerobject_collectionname).clear();
+
+    (*PU_zpositions_).clear();
+    (*PU_sumpT_lowpT_).clear();
+    (*PU_sumpT_highpT_).clear();
+    (*PU_ntrks_lowpT_).clear();
+    (*PU_ntrks_highpT_).clear();
+    (*PU_NumInteractions_).clear();
+    (*PU_bunchCrossing_).clear();
+    (*PU_TrueNumInteractions_).clear();
   }
 
   uint registerleaves(edm::ProducerBase * producer){
@@ -135,6 +168,15 @@ class AdHocNTupler : public NTupler {
       tree_->Branch("standalone_triggerobject_phi",&standalone_triggerobject_phi);
       tree_->Branch("standalone_triggerobject_eta",&standalone_triggerobject_eta);
       tree_->Branch("standalone_triggerobject_collectionname",&standalone_triggerobject_collectionname);
+
+      tree_->Branch("PU_zpositions",&PU_zpositions_);
+      tree_->Branch("PU_sumpT_lowpT",&PU_sumpT_lowpT_);
+      tree_->Branch("PU_sumpT_highpT",&PU_sumpT_highpT_);
+      tree_->Branch("PU_ntrks_lowpT",&PU_ntrks_lowpT_);
+      tree_->Branch("PU_ntrks_highpT",&PU_ntrks_highpT_);
+      tree_->Branch("PU_NumInteractions",&PU_NumInteractions_);
+      tree_->Branch("PU_bunchCrossing",&PU_bunchCrossing_);
+      tree_->Branch("PU_TrueNumInteractions",&PU_TrueNumInteractions_);
     }
 
     else{
@@ -183,6 +225,14 @@ class AdHocNTupler : public NTupler {
     standalone_triggerobject_eta = new std::vector<float>;
     standalone_triggerobject_collectionname = new std::vector<std::string>;
 
+    PU_zpositions_ = new std::vector<std::vector<float> >;
+    PU_sumpT_lowpT_ = new std::vector<std::vector<float> >;
+    PU_sumpT_highpT_ = new std::vector<std::vector<float> >;
+    PU_ntrks_lowpT_ = new std::vector<std::vector<int> >;
+    PU_ntrks_highpT_ = new std::vector<std::vector<int> >;
+    PU_NumInteractions_ = new std::vector<int>;
+    PU_bunchCrossing_ = new std::vector<int>;
+    PU_TrueNumInteractions_ = new std::vector<float>;
   }
 
   ~AdHocNTupler(){
@@ -198,6 +248,15 @@ class AdHocNTupler : public NTupler {
     delete standalone_triggerobject_phi;
     delete standalone_triggerobject_eta;
     delete standalone_triggerobject_collectionname;
+
+    delete PU_zpositions_;
+    delete PU_sumpT_lowpT_;
+    delete PU_sumpT_highpT_;
+    delete PU_ntrks_lowpT_;
+    delete PU_ntrks_highpT_;
+    delete PU_NumInteractions_;
+    delete PU_bunchCrossing_;
+    delete PU_TrueNumInteractions_;
   }
 
  private:
@@ -217,5 +276,14 @@ class AdHocNTupler : public NTupler {
   std::vector<float> * standalone_triggerobject_phi;
   std::vector<float> * standalone_triggerobject_eta;
   std::vector<std::string> * standalone_triggerobject_collectionname;
+
+  std::vector<std::vector<float> > * PU_zpositions_;
+  std::vector<std::vector<float> > * PU_sumpT_lowpT_;
+  std::vector<std::vector<float> > * PU_sumpT_highpT_;
+  std::vector<std::vector<int> > * PU_ntrks_lowpT_;
+  std::vector<std::vector<int> > * PU_ntrks_highpT_;
+  std::vector<int> * PU_NumInteractions_;
+  std::vector<int> * PU_bunchCrossing_;
+  std::vector<float> * PU_TrueNumInteractions_;
  
 };
