@@ -968,6 +968,32 @@ configurableAnalysis = cms.EDFilter("ConfigurableAnalysis",
                 Class = cms.string('pat::Jet')
             ),
             
+            mc_jets = cms.PSet(
+                src = cms.InputTag("slimmedGenJets"),
+                leaves = cms.PSet(
+                    vars = cms.vstring(
+                        'phi:phi',
+                        'pt:pt',
+                        'pz:pz',
+                        'px:px',
+                        'py:py',
+                        'eta:eta',
+                        'theta:theta',
+                        'et:et',
+                        'energy:energy',
+                        'emEnergy:emEnergy',
+                        'hadEnergy:hadEnergy',
+                        'invisibleEnergy:invisibleEnergy',
+                        'auxiliaryEnergy:auxiliaryEnergy',
+                        'etaetaMoment:etaetaMoment',
+                        'etaphiMoment:etaphiMoment',
+                        'phiphiMoment:phiphiMoment',
+                        'mass:mass'
+                    )
+        	),
+                Class = cms.string('reco::GenJet')
+            ),
+            
           pfcand = cms.PSet(
                 src = cms.InputTag('packedPFCandidates'),
                 leaves = cms.PSet(
@@ -984,7 +1010,7 @@ configurableAnalysis = cms.EDFilter("ConfigurableAnalysis",
                         'charge:charge'
                      )
                 ),
-                selection = cms.string('pt>10'),
+                #selection = cms.string('pt>10'),
                 Class = cms.string('pat::PackedCandidate')
             ),
         ),

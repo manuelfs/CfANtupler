@@ -60,6 +60,57 @@ class AdHocNTupler : public NTupler {
     } // if it's not real data
 
 
+    //////////////// Filter decisions and names //////////////////
+    edm::Handle<edm::TriggerResults> filterBits;
+    edm::InputTag labfilterBits("TriggerResults","","PAT");
+    iEvent.getByLabel(labfilterBits,filterBits);  
+    int trackingfailturefilterResult(1);			    
+    int goodVerticesfilterResult(1);				    
+    int cschalofilterResult(1);						    
+    int trkPOGfilterResult(1);						    
+    int trkPOG_logErrorTooManyClustersfilterResult(1);	
+    int EcalDeadCellTriggerPrimitivefilterResult(1);	
+    int ecallaserfilterResult(1);						    
+    int trkPOG_manystripclus53XfilterResult(1);		    
+    int eebadscfilterResult(1);						    
+    int METFiltersfilterResult(1);						    
+    int HBHENoisefilterResult(1);						    
+    int trkPOG_toomanystripclus53XfilterResult(1);		    
+    int hcallaserfilterResult(1);
+			               
+    const edm::TriggerNames &fnames = iEvent.triggerNames(*filterBits);
+    for (unsigned int i = 0, n = filterBits->size(); i < n; ++i) {
+      string filterName = fnames.triggerName(i);
+      int filterdecision = filterBits->accept(i);
+      if (filterName=="Flag_trackingFailureFilter")		 trackingfailturefilterResult = filterdecision;
+      if (filterName=="Flag_goodVertices")			 goodVerticesfilterResult = filterdecision;
+      if (filterName=="Flag_CSCTightHaloFilter")		 cschalofilterResult = filterdecision;
+      if (filterName=="Flag_trkPOGFilters")			 trkPOGfilterResult = filterdecision;
+      if (filterName=="Flag_trkPOG_logErrorTooManyClusters")	 trkPOG_logErrorTooManyClustersfilterResult = filterdecision;
+      if (filterName=="Flag_EcalDeadCellTriggerPrimitiveFilter") EcalDeadCellTriggerPrimitivefilterResult = filterdecision;
+      if (filterName=="Flag_ecalLaserCorrFilter")		 ecallaserfilterResult = filterdecision;
+      if (filterName=="Flag_trkPOG_manystripclus53X")		 trkPOG_manystripclus53XfilterResult = filterdecision;
+      if (filterName=="Flag_eeBadScFilter")			 eebadscfilterResult = filterdecision;
+      if (filterName=="Flag_METFilters")			 METFiltersfilterResult = filterdecision;
+      if (filterName=="Flag_HBHENoiseFilter")			 HBHENoisefilterResult = filterdecision;
+      if (filterName=="Flag_trkPOG_toomanystripclus53X")	 trkPOG_toomanystripclus53XfilterResult = filterdecision;
+      if (filterName=="Flag_hcalLaserEventFilter")		 hcallaserfilterResult = filterdecision;
+    }
+
+    *trackingfailturefilter_decision_			=                trackingfailturefilterResult;	   
+    *goodVerticesfilter_decision_			=		    goodVerticesfilterResult;	   
+    *cschalofilter_decision_				=			    cschalofilterResult;   	    
+    *trkPOGfilter_decision_				=			    trkPOGfilterResult;	   
+    *trkPOG_logErrorTooManyClustersfilter_decision_	=  trkPOG_logErrorTooManyClustersfilterResult;  
+    *EcalDeadCellTriggerPrimitivefilter_decision_	=    EcalDeadCellTriggerPrimitivefilterResult;    
+    *ecallaserfilter_decision_				=			    ecallaserfilterResult; 	    
+    *trkPOG_manystripclus53Xfilter_decision_		=	    trkPOG_manystripclus53XfilterResult;   
+    *eebadscfilter_decision_				=			    eebadscfilterResult;   	    
+    *METFiltersfilter_decision_				=			    METFiltersfilterResult;	    
+    *HBHENoisefilter_decision_				=			    HBHENoisefilterResult; 	    
+    *trkPOG_toomanystripclus53Xfilter_decision_		=	    trkPOG_toomanystripclus53XfilterResult;
+    *hcallaserfilter_decision_				=                       hcallaserfilterResult;     
+
     //////////////// Trigger decisions and names //////////////////
     edm::Handle<edm::TriggerResults> triggerBits;
     edm::InputTag labtriggerBits("TriggerResults","","HLT");
@@ -177,6 +228,20 @@ class AdHocNTupler : public NTupler {
       tree_->Branch("PU_NumInteractions",&PU_NumInteractions_);
       tree_->Branch("PU_bunchCrossing",&PU_bunchCrossing_);
       tree_->Branch("PU_TrueNumInteractions",&PU_TrueNumInteractions_);
+
+      tree_->Branch("trackingfailturefilter_decision", trackingfailturefilter_decision_ ,"rackingfailturefilter_decision/I");    
+      tree_->Branch("goodVerticesfilter_decision", goodVerticesfilter_decision_	 ,"oodVerticesfilter_decision/I");
+      tree_->Branch("cschalofilter_decision", cschalofilter_decision_,"schalofilter_decision/I");			  
+      tree_->Branch("trkPOGfilter_decision",  trkPOGfilter_decision_ ,"rkPOGfilter_decision/I");			  	 
+      tree_->Branch("trkPOG_logErrorTooManyClustersfilter_decision", trkPOG_logErrorTooManyClustersfilter_decision_ ,"rkPOG_logErrorTooManyClustersfilter_decision/I");  	 
+      tree_->Branch("EcalDeadCellTriggerPrimitivefilter_decision",	  EcalDeadCellTriggerPrimitivefilter_decision_	 ,"calDeadCellTriggerPrimitivefilter_decision/I");	  
+      tree_->Branch("ecallaserfilter_decision",	ecallaserfilter_decision_ ,"callaserfilter_decision/I");			  
+      tree_->Branch("trkPOG_manystripclus53Xfilter_decision",	  trkPOG_manystripclus53Xfilter_decision_	 ,"rkPOG_manystripclus53Xfilter_decision/I");	  
+      tree_->Branch("eebadscfilter_decision",  eebadscfilter_decision_		 ,"ebadscfilter_decision/I");			  
+      tree_->Branch("METFiltersfilter_decision", METFiltersfilter_decision_	 ,"ETFiltersfilter_decision/I");
+      tree_->Branch("HBHENoisefilter_decision",	 HBHENoisefilter_decision_ ,"BHENoisefilter_decision/I");			  
+      tree_->Branch("trkPOG_toomanystripclus53Xfilter_decision",	  trkPOG_toomanystripclus53Xfilter_decision_	 ,"rkPOG_toomanystripclus53Xfilter_decision/I");	  
+      tree_->Branch("hcallaserfilter_decision",    hcallaserfilter_decision_,"callaserfilter_decision/I");   
     }
 
     else{
@@ -233,6 +298,22 @@ class AdHocNTupler : public NTupler {
     PU_NumInteractions_ = new std::vector<int>;
     PU_bunchCrossing_ = new std::vector<int>;
     PU_TrueNumInteractions_ = new std::vector<float>;
+
+    trackingfailturefilter_decision_			= new int;   
+    goodVerticesfilter_decision_			= new int;
+    cschalofilter_decision_				= new int;    
+    trkPOGfilter_decision_				= new int;
+    trkPOG_logErrorTooManyClustersfilter_decision_	= new int;
+    EcalDeadCellTriggerPrimitivefilter_decision_	= new int;
+    ecallaserfilter_decision_				= new int;    
+    trkPOG_manystripclus53Xfilter_decision_		= new int;
+    eebadscfilter_decision_				= new int;    
+    METFiltersfilter_decision_				= new int;    
+    HBHENoisefilter_decision_				= new int;    
+    trkPOG_toomanystripclus53Xfilter_decision_		= new int;
+    hcallaserfilter_decision_				= new int;
+
+
   }
 
   ~AdHocNTupler(){
@@ -257,6 +338,21 @@ class AdHocNTupler : public NTupler {
     delete PU_NumInteractions_;
     delete PU_bunchCrossing_;
     delete PU_TrueNumInteractions_;
+
+    delete trackingfailturefilter_decision_		     ;
+    delete goodVerticesfilter_decision_		     ;
+    delete cschalofilter_decision_			     ;
+    delete trkPOGfilter_decision_			     ;
+    delete trkPOG_logErrorTooManyClustersfilter_decision_;
+    delete EcalDeadCellTriggerPrimitivefilter_decision_  ;
+    delete ecallaserfilter_decision_		     ;    
+    delete trkPOG_manystripclus53Xfilter_decision_	     ;
+    delete eebadscfilter_decision_			     ;
+    delete METFiltersfilter_decision_		     ;    
+    delete HBHENoisefilter_decision_		     ;    
+    delete trkPOG_toomanystripclus53Xfilter_decision_    ;
+    delete hcallaserfilter_decision_		     ;
+
   }
 
  private:
@@ -286,4 +382,18 @@ class AdHocNTupler : public NTupler {
   std::vector<int> * PU_bunchCrossing_;
   std::vector<float> * PU_TrueNumInteractions_;
  
+  int *trackingfailturefilter_decision_		     ;
+  int *goodVerticesfilter_decision_		     ;
+  int *cschalofilter_decision_			     ;
+  int *trkPOGfilter_decision_			     ;
+  int *trkPOG_logErrorTooManyClustersfilter_decision_;
+  int *EcalDeadCellTriggerPrimitivefilter_decision_  ;
+  int *ecallaserfilter_decision_		     ;    
+  int *trkPOG_manystripclus53Xfilter_decision_	     ;
+  int *eebadscfilter_decision_			     ;
+  int *METFiltersfilter_decision_		     ;    
+  int *HBHENoisefilter_decision_		     ;    
+  int *trkPOG_toomanystripclus53Xfilter_decision_    ;
+  int *hcallaserfilter_decision_		     ;
+
 };
