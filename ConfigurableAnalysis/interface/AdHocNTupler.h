@@ -1,6 +1,8 @@
 // ADHOCNTUPLER: Creates eventA in the cfA ntuples, the tree that requires
 //               Ad hoc c++ code to be filled.
 
+#include <cmath>
+
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Framework/interface/Run.h"
 #include "FWCore/Utilities/interface/Exception.h"
@@ -8,6 +10,8 @@
 
 #include "DataFormats/Common/interface/ConditionsInEdm.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
+#include "DataFormats/PatCandidates/interface/Muon.h"
+#include "DataFormats/PatCandidates/interface/Tau.h"
 #include "DataFormats/PatCandidates/interface/Photon.h"
 #include "DataFormats/PatCandidates/interface/TriggerPath.h"
 #include "DataFormats/PatCandidates/interface/TriggerEvent.h"
@@ -18,12 +22,10 @@
 #include "DataFormats/L1GlobalTrigger/interface/L1GlobalTriggerReadoutRecord.h"
 
 #include "DataFormats/Common/interface/TriggerResults.h"
-#include "DataFormats/HcalRecHit/interface/HBHERecHit.h"
-
-#include "DataFormats/RecoCandidate/interface/IsoDeposit.h"
 #include "DataFormats/Common/interface/ValueMap.h"
 #include "RecoEgamma/EgammaTools/interface/ConversionTools.h"
 
+#include "DataFormats/Math/interface/deltaR.h"
 #include "DataFormats/PatCandidates/interface/MET.h"
 #include "DataFormats/PatCandidates/interface/Jet.h"
 
@@ -36,6 +38,123 @@ class AdHocNTupler : public NTupler {
  public:
 
   void fill(edm::Event& iEvent){
+
+    nevents++;
+
+    //////////////// pfcands shenanigans //////////////////
+    edm::Handle<pat::PackedCandidateCollection> pfcands;
+    iEvent.getByLabel("packedPFCandidates", pfcands);
+    edm::Handle<pat::MuonCollection> muons;
+    iEvent.getByLabel("slimmedMuons", muons);
+    edm::Handle<pat::ElectronCollection> electrons;
+    iEvent.getByLabel("slimmedElectrons", electrons);
+    edm::Handle<pat::JetCollection> jets;
+    iEvent.getByLabel("slimmedJets", jets);
+    edm::Handle<pat::TauCollection> taus;
+    iEvent.getByLabel("slimmedTaus", taus);
+
+    vector<const pat::PackedCandidate*> el_pfmatch, mu_pfmatch; 
+    for (const pat::PackedCandidate &pfc : *pfcands) {
+      for (unsigned int ilep(0); ilep < electrons->size(); ilep++) {
+	const pat::Electron &lep = (*electrons)[ilep];
+	if(el_pfmatch.size() <= ilep) el_pfmatch.push_back(&pfc);
+	else if(lep.pdgId()==pfc.pdgId() && deltaR(pfc, lep) < deltaR(*(el_pfmatch[ilep]), lep)) el_pfmatch[ilep] = &pfc;
+      }
+      for (unsigned int ilep(0); ilep < muons->size(); ilep++) {
+	const pat::Muon &lep = (*muons)[ilep];
+	if(mu_pfmatch.size() <= ilep) mu_pfmatch.push_back(&pfc);
+	else if(lep.pdgId()==pfc.pdgId() && deltaR(pfc, lep) < deltaR(*(mu_pfmatch[ilep]), lep)) mu_pfmatch[ilep] = &pfc;
+      }
+    } // Loop over pfcands
+
+    // Finding electron PF match
+    for (unsigned int ilep(0); ilep < electrons->size(); ilep++) {
+      const pat::Electron &lep = (*electrons)[ilep];
+      els_isPF->push_back(deltaR(lep, *el_pfmatch[ilep]) < 0.1 && abs(lep.p()-el_pfmatch[ilep]->p())/lep.p()<0.05 &&
+			  lep.pdgId() == el_pfmatch[ilep]->pdgId());
+      els_jet_ind->push_back(-1);
+    }
+
+    // Finding muon PF match
+    for (unsigned int ilep(0); ilep < muons->size(); ilep++) {
+      const pat::Muon &lep = (*muons)[ilep];
+      mus_isPF->push_back(lep.numberOfSourceCandidatePtrs()==1 && lep.sourceCandidatePtr(0)->pdgId()==lep.pdgId());
+      mus_jet_ind->push_back(-1);
+    }
+
+    // Finding leptons in jets
+    for (unsigned int ijet(0); ijet < jets->size(); ijet++) {
+      const pat::Jet &jet = (*jets)[ijet];
+      jets_AK4_mu_ind->push_back(-1);
+      jets_AK4_el_ind->push_back(-1);
+
+      float maxp(-99.), maxp_mu(-99.), maxp_el(-99.);
+      int maxid(0);
+      for (unsigned int i = 0, n = jet.numberOfSourceCandidatePtrs(); i < n; ++i) {
+	const pat::PackedCandidate &pfc = dynamic_cast<const pat::PackedCandidate &>(*jet.sourceCandidatePtr(i));
+	int pf_id = pfc.pdgId();
+	float pf_p = pfc.p();
+	if(pf_p > maxp){
+	  maxp = pf_p;
+	  maxid = pf_id;
+	}
+
+	if(abs(pf_id) == 11){
+	  for (unsigned int ilep(0); ilep < electrons->size(); ilep++) {
+	    if(&pfc == el_pfmatch[ilep]){
+	      els_jet_ind->at(ilep) = ijet;
+	      if(pf_p > maxp_el){
+		maxp_el = pf_p;
+		jets_AK4_el_ind->at(ijet) = ilep; // Storing the index of the highest pt electron in jet
+	      }
+	      break;
+	    }
+	  } // Loop over electrons
+	} // If pfc is an electron
+
+	if(abs(pf_id) == 13){
+	  for (unsigned int ilep(0); ilep < muons->size(); ilep++) {
+	    if(&pfc == mu_pfmatch[ilep]){
+	      mus_jet_ind->at(ilep) = ijet;
+	      if(pf_p > maxp_mu){
+		maxp_mu = pf_p;
+		jets_AK4_mu_ind->at(ijet) = ilep; // Storing the index of the highest pt muon in jet
+	      }
+	      break;
+	    }
+	  } // Loop over muons
+	} // If pfc is an muon
+
+      } // Loop over jet constituents
+      jets_AK4_maxpt_id->push_back(maxid);
+    } // Loop over jets
+
+    // Finding leptons in taus
+    for (unsigned int itau(0); itau < taus->size(); itau++) {
+      const pat::Tau &tau = (*taus)[itau];
+      taus_mu_ind->push_back(-1);
+      taus_el_ind->push_back(-1);
+
+      if(tau.numberOfSourceCandidatePtrs() == 1){
+	const pat::PackedCandidate &pfc = dynamic_cast<const pat::PackedCandidate &> (*tau.sourceCandidatePtr(0));
+	if(abs(pfc.pdgId())==11){
+	  for (unsigned int ilep(0); ilep < electrons->size(); ilep++) {
+	    if(&pfc == el_pfmatch[ilep]){
+	      taus_el_ind->at(itau) = ilep;
+	      break;
+	    } 
+	  } // Loop over electrons
+	}
+	if(abs(pfc.pdgId())==13){
+	  for (unsigned int ilep(0); ilep < muons->size(); ilep++) {
+	    if(&pfc == mu_pfmatch[ilep]){
+	      taus_mu_ind->at(itau) = ilep;
+	      break;
+	    } 
+	  } // Loop over electrons
+	}
+      } // If tau has one constituent
+    } // Loop over taus
 
     //////////////// Pile up information //////////////////
     if(!iEvent.isRealData()) { //Access PU info in MC
@@ -184,6 +303,17 @@ class AdHocNTupler : public NTupler {
     (*PU_NumInteractions_).clear();
     (*PU_bunchCrossing_).clear();
     (*PU_TrueNumInteractions_).clear();
+
+    (*els_isPF).clear();
+    (*mus_isPF).clear();
+
+    (*jets_AK4_maxpt_id).clear();
+    (*jets_AK4_mu_ind).clear();
+    (*jets_AK4_el_ind).clear();
+    (*taus_el_ind).clear();
+    (*taus_mu_ind).clear();
+    (*els_jet_ind).clear();
+    (*mus_jet_ind).clear();
   }
 
   uint registerleaves(edm::ProducerBase * producer){
@@ -242,6 +372,17 @@ class AdHocNTupler : public NTupler {
       tree_->Branch("HBHENoisefilter_decision",	 HBHENoisefilter_decision_ ,"BHENoisefilter_decision/I");			  
       tree_->Branch("trkPOG_toomanystripclus53Xfilter_decision",	  trkPOG_toomanystripclus53Xfilter_decision_	 ,"rkPOG_toomanystripclus53Xfilter_decision/I");	  
       tree_->Branch("hcallaserfilter_decision",    hcallaserfilter_decision_,"callaserfilter_decision/I");   
+
+      tree_->Branch("els_isPF",&els_isPF);
+      tree_->Branch("mus_isPF",&mus_isPF);
+
+      tree_->Branch("jets_AK4_maxpt_id", &jets_AK4_maxpt_id);
+      tree_->Branch("jets_AK4_mu_ind",	&jets_AK4_mu_ind);  
+      tree_->Branch("jets_AK4_el_ind",	&jets_AK4_el_ind);  
+      tree_->Branch("taus_el_ind",	&taus_el_ind);      
+      tree_->Branch("taus_mu_ind",	&taus_mu_ind);      
+      tree_->Branch("els_jet_ind",	&els_jet_ind);      
+      tree_->Branch("mus_jet_ind",	&mus_jet_ind);      
     }
 
     else{
@@ -259,6 +400,7 @@ class AdHocNTupler : public NTupler {
 
   AdHocNTupler (const edm::ParameterSet& iConfig){
     edm::ParameterSet adHocPSet = iConfig.getParameter<edm::ParameterSet>("AdHocNPSet");
+    nevents = 0;
 
     if (adHocPSet.exists("useTFileService"))
       useTFileService_=adHocPSet.getParameter<bool>("useTFileService");         
@@ -313,6 +455,16 @@ class AdHocNTupler : public NTupler {
     trkPOG_toomanystripclus53Xfilter_decision_		= new int;
     hcallaserfilter_decision_				= new int;
 
+    els_isPF = new std::vector<bool>;
+    mus_isPF = new std::vector<bool>;
+
+    jets_AK4_maxpt_id = new std::vector<int>;
+    jets_AK4_mu_ind = new std::vector<int>;
+    jets_AK4_el_ind = new std::vector<int>;
+    taus_el_ind = new std::vector<int>;
+    taus_mu_ind = new std::vector<int>;
+    els_jet_ind = new std::vector<int>;
+    mus_jet_ind = new std::vector<int>;
 
   }
 
@@ -353,12 +505,26 @@ class AdHocNTupler : public NTupler {
     delete trkPOG_toomanystripclus53Xfilter_decision_    ;
     delete hcallaserfilter_decision_		     ;
 
+    delete els_isPF;
+    delete mus_isPF;
+
+    delete jets_AK4_maxpt_id;
+    delete jets_AK4_mu_ind;
+    delete jets_AK4_el_ind;
+    delete taus_el_ind;
+    delete taus_mu_ind;
+    delete els_jet_ind;
+    delete mus_jet_ind;
+
+
   }
 
  private:
   bool ownTheTree_;
   std::string treeName_;
   bool useTFileService_;
+  long nevents;
+
 
   std::vector<bool> * trigger_decision;
   std::vector<std::string> * trigger_name;
@@ -395,5 +561,17 @@ class AdHocNTupler : public NTupler {
   int *HBHENoisefilter_decision_		     ;    
   int *trkPOG_toomanystripclus53Xfilter_decision_    ;
   int *hcallaserfilter_decision_		     ;
+
+  std::vector<bool> * els_isPF;
+  std::vector<bool> * mus_isPF;
+
+  std::vector<int> * jets_AK4_maxpt_id;
+  std::vector<int> * jets_AK4_mu_ind;
+  std::vector<int> * jets_AK4_el_ind;
+
+  std::vector<int> * taus_el_ind;
+  std::vector<int> * taus_mu_ind;
+  std::vector<int> * els_jet_ind;
+  std::vector<int> * mus_jet_ind;
 
 };

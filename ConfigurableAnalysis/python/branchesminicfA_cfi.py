@@ -103,7 +103,6 @@ configurableAnalysis = cms.EDFilter("ConfigurableAnalysis",
                 leaves = cms.PSet(
                     basicKinematicLeaves,
                     vars = cms.vstring(
-                        'nPFmatch:numberOfSourceCandidatePtrs()',
                         'gen_id:genLepton.pdgId',
                         'gen_phi:genLepton.phi',
                         'gen_pt:genLepton.pt',
@@ -358,7 +357,6 @@ configurableAnalysis = cms.EDFilter("ConfigurableAnalysis",
                 leaves = cms.PSet(
                     basicKinematicLeaves,
                     vars= cms.vstring('hadOverEM:hadronicOverEm',
-                                      'nPFmatch:numberOfSourceCandidatePtrs()',
                                       'hadTowOverEM:hadTowOverEm',
                                       'scEnergy:superCluster.energy',
                                       'scRawEnergy:superCluster.rawEnergy',
@@ -691,7 +689,6 @@ configurableAnalysis = cms.EDFilter("ConfigurableAnalysis",
                  leaves = cms.PSet(
                      #basicKinematicLeaves,
                      vars = cms.vstring(
-                         'nPFmatch:numberOfSourceCandidatePtrs()',
                          'status:status',
                          'phi:phi',
                          'pt:pt',
@@ -762,7 +759,6 @@ configurableAnalysis = cms.EDFilter("ConfigurableAnalysis",
                 leaves = cms.PSet(
                     basicKinematicLeaves,
                     vars = cms.vstring(#'id:leptonID', 
-                        'nPFmatch:numberOfSourceCandidatePtrs()',
                         'pfIsolationR03_sumChargedHadronPt:pfIsolationVariables.sumChargedHadronPt',
                         'pfIsolationR03_sumNeutralHadronEt:pfIsolationVariables.sumNeutralHadronEt',
                         'pfIsolationR03_sumPhotonEt:pfIsolationVariables.sumPhotonEt',
