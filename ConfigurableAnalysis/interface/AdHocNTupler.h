@@ -183,7 +183,7 @@ class AdHocNTupler : public NTupler {
     edm::Handle<edm::TriggerResults> filterBits;
     edm::InputTag labfilterBits("TriggerResults","","PAT");
     iEvent.getByLabel(labfilterBits,filterBits);  
-    int trackingfailturefilterResult(1);			    
+    int trackingfailurefilterResult(1);			    
     int goodVerticesfilterResult(1);				    
     int cschalofilterResult(1);						    
     int trkPOGfilterResult(1);						    
@@ -201,7 +201,7 @@ class AdHocNTupler : public NTupler {
     for (unsigned int i = 0, n = filterBits->size(); i < n; ++i) {
       string filterName = fnames.triggerName(i);
       int filterdecision = filterBits->accept(i);
-      if (filterName=="Flag_trackingFailureFilter")		 trackingfailturefilterResult = filterdecision;
+      if (filterName=="Flag_trackingFailureFilter")		 trackingfailurefilterResult = filterdecision;
       if (filterName=="Flag_goodVertices")			 goodVerticesfilterResult = filterdecision;
       if (filterName=="Flag_CSCTightHaloFilter")		 cschalofilterResult = filterdecision;
       if (filterName=="Flag_trkPOGFilters")			 trkPOGfilterResult = filterdecision;
@@ -216,7 +216,7 @@ class AdHocNTupler : public NTupler {
       if (filterName=="Flag_hcalLaserEventFilter")		 hcallaserfilterResult = filterdecision;
     }
 
-    *trackingfailturefilter_decision_			=                trackingfailturefilterResult;	   
+    *trackingfailurefilter_decision_			=                trackingfailurefilterResult;	   
     *goodVerticesfilter_decision_			=		    goodVerticesfilterResult;	   
     *cschalofilter_decision_				=			    cschalofilterResult;   	    
     *trkPOGfilter_decision_				=			    trkPOGfilterResult;	   
@@ -359,7 +359,7 @@ class AdHocNTupler : public NTupler {
       tree_->Branch("PU_bunchCrossing",&PU_bunchCrossing_);
       tree_->Branch("PU_TrueNumInteractions",&PU_TrueNumInteractions_);
 
-      tree_->Branch("trackingfailturefilter_decision", trackingfailturefilter_decision_ ,"rackingfailturefilter_decision/I");    
+      tree_->Branch("trackingfailurefilter_decision", trackingfailurefilter_decision_ ,"rackingfailurefilter_decision/I");    
       tree_->Branch("goodVerticesfilter_decision", goodVerticesfilter_decision_	 ,"oodVerticesfilter_decision/I");
       tree_->Branch("cschalofilter_decision", cschalofilter_decision_,"schalofilter_decision/I");			  
       tree_->Branch("trkPOGfilter_decision",  trkPOGfilter_decision_ ,"rkPOGfilter_decision/I");			  	 
@@ -441,7 +441,7 @@ class AdHocNTupler : public NTupler {
     PU_bunchCrossing_ = new std::vector<int>;
     PU_TrueNumInteractions_ = new std::vector<float>;
 
-    trackingfailturefilter_decision_			= new int;   
+    trackingfailurefilter_decision_			= new int;   
     goodVerticesfilter_decision_			= new int;
     cschalofilter_decision_				= new int;    
     trkPOGfilter_decision_				= new int;
@@ -491,7 +491,7 @@ class AdHocNTupler : public NTupler {
     delete PU_bunchCrossing_;
     delete PU_TrueNumInteractions_;
 
-    delete trackingfailturefilter_decision_		     ;
+    delete trackingfailurefilter_decision_		     ;
     delete goodVerticesfilter_decision_		     ;
     delete cschalofilter_decision_			     ;
     delete trkPOGfilter_decision_			     ;
@@ -548,7 +548,7 @@ class AdHocNTupler : public NTupler {
   std::vector<int> * PU_bunchCrossing_;
   std::vector<float> * PU_TrueNumInteractions_;
  
-  int *trackingfailturefilter_decision_		     ;
+  int *trackingfailurefilter_decision_		     ;
   int *goodVerticesfilter_decision_		     ;
   int *cschalofilter_decision_			     ;
   int *trkPOGfilter_decision_			     ;
