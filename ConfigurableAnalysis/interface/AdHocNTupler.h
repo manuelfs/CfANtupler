@@ -280,6 +280,32 @@ class AdHocNTupler : public NTupler {
     const L1GlobalTriggerReadoutRecord* L1trigger = L1trigger_h.failedToGet () ? 0 : &*L1trigger_h;
     if(L1trigger) cout<<"Level 1 decision: "<<L1trigger->decision()<<endl;
 
+
+   //isolated pf candidates as found by TrackIsolationMaker                                                                               
+    std::cout << "Isotk copying" << std::endl;                  
+    edm::Handle< vector<float> > pfcand_dzpv;
+    iEvent.getByLabel("trackIsolationMaker","pfcandsdzpv", pfcand_dzpv);
+    edm::Handle< vector<float> > pfcand_pt;
+    iEvent.getByLabel("trackIsolationMaker","pfcandspt", pfcand_pt);
+    edm::Handle< vector<float> > pfcand_eta;
+    iEvent.getByLabel("trackIsolationMaker","pfcandseta", pfcand_eta);
+    edm::Handle< vector<float> > pfcand_phi;
+    iEvent.getByLabel("trackIsolationMaker","pfcandsphi", pfcand_phi);
+    edm::Handle< vector<float> > pfcand_iso;
+    iEvent.getByLabel("trackIsolationMaker","pfcandstrkiso", pfcand_iso);
+    edm::Handle< vector<int> > pfcand_charge;
+    iEvent.getByLabel("trackIsolationMaker","pfcandschg", pfcand_charge);
+
+   for (size_t it=0; it<pfcand_pt->size(); ++it ) {
+     isotk_pt_->push_back( pfcand_pt->at(it));
+     isotk_phi_ -> push_back( pfcand_phi->at(it));
+     isotk_eta_ -> push_back( pfcand_eta->at(it));
+     isotk_iso_ -> push_back( pfcand_iso->at(it));
+     isotk_dzpv_ -> push_back( pfcand_dzpv->at(it));
+     isotk_charge_ -> push_back( pfcand_charge->at(it));
+   }
+
+
     //fill the tree    
     if (ownTheTree_){ tree_->Fill(); }
     (*trigger_name).clear();
@@ -314,6 +340,13 @@ class AdHocNTupler : public NTupler {
     (*taus_mu_ind).clear();
     (*els_jet_ind).clear();
     (*mus_jet_ind).clear();
+
+    (*isotk_pt_).clear();
+    (*isotk_phi_).clear();
+    (*isotk_eta_).clear();
+    (*isotk_iso_).clear();
+    (*isotk_dzpv_).clear();
+    (*isotk_charge_).clear();
   }
 
   uint registerleaves(edm::ProducerBase * producer){
@@ -383,6 +416,12 @@ class AdHocNTupler : public NTupler {
       tree_->Branch("taus_mu_ind",	&taus_mu_ind);      
       tree_->Branch("els_jet_ind",	&els_jet_ind);      
       tree_->Branch("mus_jet_ind",	&mus_jet_ind);      
+      tree_->Branch("isotk_pt",&isotk_pt_);
+      tree_->Branch("isotk_phi",&isotk_phi_);
+      tree_->Branch("isotk_eta",&isotk_eta_);
+      tree_->Branch("isotk_iso",&isotk_iso_);
+      tree_->Branch("isotk_dzpv",&isotk_dzpv_);
+      tree_->Branch("isotk_charge",&isotk_charge_);
     }
 
     else{
@@ -466,6 +505,15 @@ class AdHocNTupler : public NTupler {
     els_jet_ind = new std::vector<int>;
     mus_jet_ind = new std::vector<int>;
 
+    //isolated tracks (charged pf candidates)                                                                                                               
+    isotk_pt_ = new std::vector<float>;
+    isotk_phi_ = new std::vector<float>;
+    isotk_eta_ = new std::vector<float>;
+    isotk_iso_ = new std::vector<float>;
+    isotk_dzpv_ = new std::vector<float>;
+    isotk_charge_ = new std::vector<int>;
+
+
   }
 
   ~AdHocNTupler(){
@@ -515,6 +563,13 @@ class AdHocNTupler : public NTupler {
     delete taus_mu_ind;
     delete els_jet_ind;
     delete mus_jet_ind;
+
+    delete isotk_pt_;
+    delete isotk_phi_;
+    delete isotk_eta_;
+    delete isotk_iso_;
+    delete isotk_dzpv_;
+    delete isotk_charge_;
 
 
   }
@@ -573,5 +628,12 @@ class AdHocNTupler : public NTupler {
   std::vector<int> * taus_mu_ind;
   std::vector<int> * els_jet_ind;
   std::vector<int> * mus_jet_ind;
+
+  std::vector<float> * isotk_pt_;
+  std::vector<float> * isotk_phi_;
+  std::vector<float> * isotk_eta_;
+  std::vector<float> * isotk_iso_;
+  std::vector<float> * isotk_dzpv_;
+  std::vector<int> *   isotk_charge_;
 
 };

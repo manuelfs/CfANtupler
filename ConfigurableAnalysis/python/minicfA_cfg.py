@@ -29,4 +29,14 @@ process.TFileService = cms.Service("TFileService",
 )
 
 
-process.p = cms.Path(process.configurableAnalysis)
+process.trackIsolationMaker = cms.EDProducer("TrackIsolationMaker",
+                                             pfCandidatesTag = cms.InputTag("packedPFCandidates"),
+                                             vertexInputTag = cms.InputTag("offlineSlimmedPrimaryVertices"),
+                                             dR_ConeSize = cms.double(0.3),
+                                             dz_CutValue = cms.double(0.05),
+                                             minPt_PFCandidate = cms.double(5.0), #looser than the likely analysis selection
+                                             maxIso_PFCandidate = cms.double(0.25) #very loose
+)
+
+process.p = cms.Path(process.trackIsolationMaker)
+process.outpath = cms.EndPath(cms.ignore(process.configurableAnalysis))
