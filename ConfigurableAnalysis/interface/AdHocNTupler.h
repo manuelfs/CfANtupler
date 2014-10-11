@@ -392,19 +392,19 @@ class AdHocNTupler : public NTupler {
       tree_->Branch("PU_bunchCrossing",&PU_bunchCrossing_);
       tree_->Branch("PU_TrueNumInteractions",&PU_TrueNumInteractions_);
 
-      tree_->Branch("trackingfailurefilter_decision", trackingfailurefilter_decision_ ,"rackingfailurefilter_decision/I");    
-      tree_->Branch("goodVerticesfilter_decision", goodVerticesfilter_decision_	 ,"oodVerticesfilter_decision/I");
-      tree_->Branch("cschalofilter_decision", cschalofilter_decision_,"schalofilter_decision/I");			  
-      tree_->Branch("trkPOGfilter_decision",  trkPOGfilter_decision_ ,"rkPOGfilter_decision/I");			  	 
-      tree_->Branch("trkPOG_logErrorTooManyClustersfilter_decision", trkPOG_logErrorTooManyClustersfilter_decision_ ,"rkPOG_logErrorTooManyClustersfilter_decision/I");  	 
-      tree_->Branch("EcalDeadCellTriggerPrimitivefilter_decision",	  EcalDeadCellTriggerPrimitivefilter_decision_	 ,"calDeadCellTriggerPrimitivefilter_decision/I");	  
-      tree_->Branch("ecallaserfilter_decision",	ecallaserfilter_decision_ ,"callaserfilter_decision/I");			  
-      tree_->Branch("trkPOG_manystripclus53Xfilter_decision",	  trkPOG_manystripclus53Xfilter_decision_	 ,"rkPOG_manystripclus53Xfilter_decision/I");	  
-      tree_->Branch("eebadscfilter_decision",  eebadscfilter_decision_		 ,"ebadscfilter_decision/I");			  
-      tree_->Branch("METFiltersfilter_decision", METFiltersfilter_decision_	 ,"ETFiltersfilter_decision/I");
-      tree_->Branch("HBHENoisefilter_decision",	 HBHENoisefilter_decision_ ,"BHENoisefilter_decision/I");			  
-      tree_->Branch("trkPOG_toomanystripclus53Xfilter_decision",	  trkPOG_toomanystripclus53Xfilter_decision_	 ,"rkPOG_toomanystripclus53Xfilter_decision/I");	  
-      tree_->Branch("hcallaserfilter_decision",    hcallaserfilter_decision_,"callaserfilter_decision/I");   
+      tree_->Branch("trackingfailurefilter_decision", trackingfailurefilter_decision_ ,"trackingfailurefilter_decision/I");    
+      tree_->Branch("goodVerticesfilter_decision", goodVerticesfilter_decision_	 ,"goodVerticesfilter_decision/I");
+      tree_->Branch("cschalofilter_decision", cschalofilter_decision_,"cschalofilter_decision/I");			  
+      tree_->Branch("trkPOGfilter_decision",  trkPOGfilter_decision_ ,"trkPOGfilter_decision/I");			  	 
+      tree_->Branch("trkPOG_logErrorTooManyClustersfilter_decision", trkPOG_logErrorTooManyClustersfilter_decision_ ,"trkPOG_logErrorTooManyClustersfilter_decision/I");  	 
+      tree_->Branch("EcalDeadCellTriggerPrimitivefilter_decision",	  EcalDeadCellTriggerPrimitivefilter_decision_	 ,"ecalDeadCellTriggerPrimitivefilter_decision/I");	  
+      tree_->Branch("ecallaserfilter_decision",	ecallaserfilter_decision_ ,"ecallaserfilter_decision/I");			  
+      tree_->Branch("trkPOG_manystripclus53Xfilter_decision",	  trkPOG_manystripclus53Xfilter_decision_	 ,"trkPOG_manystripclus53Xfilter_decision/I");	  
+      tree_->Branch("eebadscfilter_decision",  eebadscfilter_decision_		 ,"eebadscfilter_decision/I");			  
+      tree_->Branch("METFiltersfilter_decision", METFiltersfilter_decision_	 ,"METFiltersfilter_decision/I");
+      tree_->Branch("HBHENoisefilter_decision",	 HBHENoisefilter_decision_ ,"HBHENoisefilter_decision/I");			  
+      tree_->Branch("trkPOG_toomanystripclus53Xfilter_decision",	  trkPOG_toomanystripclus53Xfilter_decision_	 ,"trkPOG_toomanystripclus53Xfilter_decision/I");	  
+      tree_->Branch("hcallaserfilter_decision",    hcallaserfilter_decision_,"hcallaserfilter_decision/I");   
 
       tree_->Branch("els_isPF",&els_isPF);
       tree_->Branch("mus_isPF",&mus_isPF);
