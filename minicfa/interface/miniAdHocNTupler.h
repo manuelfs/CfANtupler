@@ -34,7 +34,7 @@
 
 using namespace std;
 
-class AdHocNTupler : public NTupler {
+class miniAdHocNTupler : public NTupler {
  public:
 
   void fill(edm::Event& iEvent){
@@ -282,7 +282,6 @@ class AdHocNTupler : public NTupler {
 
 
    //isolated pf candidates as found by TrackIsolationMaker                                                                               
-    std::cout << "Isotk copying" << std::endl;                  
     edm::Handle< vector<float> > pfcand_dzpv;
     iEvent.getByLabel("trackIsolationMaker","pfcandsdzpv", pfcand_dzpv);
     edm::Handle< vector<float> > pfcand_pt;
@@ -355,17 +354,17 @@ class AdHocNTupler : public NTupler {
       edm::Service<TFileService> fs;      
       if (ownTheTree_){
 	ownTheTree_=true;
-	tree_=fs->make<TTree>(treeName_.c_str(),"StringBasedNTupler tree");
+	tree_=fs->make<TTree>(treeName_.c_str(),"miniStringBasedNTupler tree");
       }else{
 	TObject * object = fs->file().Get(treeName_.c_str());
 	if (!object){
 	  ownTheTree_=true;
-	  tree_=fs->make<TTree>(treeName_.c_str(),"StringBasedNTupler tree");
+	  tree_=fs->make<TTree>(treeName_.c_str(),"miniStringBasedNTupler tree");
 	}
 	tree_=dynamic_cast<TTree*>(object);
 	if (!tree_){
 	  ownTheTree_=true;
-	  tree_=fs->make<TTree>(treeName_.c_str(),"StringBasedNTupler tree");
+	  tree_=fs->make<TTree>(treeName_.c_str(),"miniStringBasedNTupler tree");
 	}
       }
       
@@ -437,7 +436,7 @@ class AdHocNTupler : public NTupler {
     //clean up whatever memory was allocated
   }
 
-  AdHocNTupler (const edm::ParameterSet& iConfig){
+  miniAdHocNTupler (const edm::ParameterSet& iConfig){
     edm::ParameterSet adHocPSet = iConfig.getParameter<edm::ParameterSet>("AdHocNPSet");
     nevents = 0;
 
@@ -516,7 +515,7 @@ class AdHocNTupler : public NTupler {
 
   }
 
-  ~AdHocNTupler(){
+  ~miniAdHocNTupler(){
     delete trigger_decision;
     delete trigger_name;
     delete trigger_prescalevalue;

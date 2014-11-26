@@ -1,10 +1,10 @@
 <export>
 </export>
-<library   name="CfANtuplerConfigurableAnalysisPlugins" file="*.cc">
+<library   name="CfANtuplerminicfaPlugins" file="*.cc">
   <flags   EDM_PLUGIN="1"/>
   <use   name="FWCore/Framework"/>
   <use   name="FWCore/PluginManager"/>
   <use   name="FWCore/ParameterSet"/>
   <use   name="PhysicsTools/Utilities"/>
-  <use   name="CfANtupler/ConfigurableAnalysis"/>
+  <use   name="CfANtupler/minicfa"/>
 </library>

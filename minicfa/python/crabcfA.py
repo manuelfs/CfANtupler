@@ -7,7 +7,7 @@ config.General.workArea = 'out_crab'
 
 config.section_("JobType")
 config.JobType.pluginName = 'Analysis'
-config.JobType.psetName = 'CfANtupler/ConfigurableAnalysis/python/minicfA_cfg.py'
+config.JobType.psetName = 'CfANtupler/minicfa/python/minicfA_cfg.py'
 
 config.section_("Data")
 config.Data.inputDataset = '/SMS-T1bbbb_2J_mGl-1000_mLSP-900_Tune4C_13TeV-madgraph-tauola/Spring14miniaod-PU20bx25_POSTLS170_V5-v1/MINIAODSIM'

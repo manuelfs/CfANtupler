@@ -1,5 +1,5 @@
-#ifndef VariableNtupler_NTupler_H
-#define VariableNtupler_NTupler_H
+#ifndef miniVariableNtupler_NTupler_H
+#define miniVariableNtupler_NTupler_H
 
 #include "PhysicsTools/UtilAlgos/interface/VariableHelper.h"
 //#include "PhysicsTools/UtilAlgos/interface/UpdaterService.h"
@@ -20,9 +20,9 @@
 
 #include <algorithm>
 
-class VariableNTupler : public NTupler{
+class miniVariableNTupler : public NTupler{
  public:
-  VariableNTupler(const edm::ParameterSet& iConfig){
+  miniVariableNTupler(const edm::ParameterSet& iConfig){
     ownTheTree_=false;
     edm::ParameterSet variablePSet=iConfig.getParameter<edm::ParameterSet>("variablesPSet");
     if (variablePSet.getParameter<bool>("allVariables"))
@@ -64,18 +64,18 @@ class VariableNTupler : public NTupler{
       edm::Service<TFileService> fs;
       if (ownTheTree_){
 	ownTheTree_=true;
-	tree_=fs->make<TTree>(treeName_.c_str(),"VariableNTupler tree");
+	tree_=fs->make<TTree>(treeName_.c_str(),"miniVariableNTupler tree");
       }else{
 	TObject * object = fs->file().Get(treeName_.c_str());
 	if (!object){
 	  ownTheTree_=true;
-	  tree_=fs->make<TTree>(treeName_.c_str(),"VariableNTupler tree");
+	  tree_=fs->make<TTree>(treeName_.c_str(),"miniVariableNTupler tree");
 	}
 	else{
 	    tree_=dynamic_cast<TTree*>(object);
 	    if (!tree_){
 	      ownTheTree_=true;
-	      tree_=fs->make<TTree>(treeName_.c_str(),"VariableNTupler tree");
+	      tree_=fs->make<TTree>(treeName_.c_str(),"miniVariableNTupler tree");
 	    }
 	    else	  ownTheTree_=false;
 	}

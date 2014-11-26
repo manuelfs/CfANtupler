@@ -1,5 +1,5 @@
-#ifndef StringBasedNTupler_NTupler_H
-#define StringBasedNTupler_NTupler_H
+#ifndef miniStringBasedNTupler_NTupler_H
+#define miniStringBasedNTupler_NTupler_H
 
 //#include "PhysicsTools/UtilAlgos/interface/UpdaterService.h"
 
@@ -30,7 +30,7 @@
 #include "DataFormats/PatCandidates/interface/PFParticle.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 
-//#define StringBasedNTuplerPrecision float;
+//#define miniStringBasedNTuplerPrecision float;
 
 #include <memory>
 #include <string>
@@ -46,15 +46,15 @@
 #include "SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h"
 
 
-class TreeBranch {
+class miniTreeBranch {
  public:
-  TreeBranch(): class_(""),expr_(""),order_(""),selection_(""),maxIndexName_(""),branchAlias_("") {}
-    TreeBranch(std::string C, edm::InputTag S, std::string E, std::string O, std::string SE, std::string Mi, std::string Ba) :
+  miniTreeBranch(): class_(""),expr_(""),order_(""),selection_(""),maxIndexName_(""),branchAlias_("") {}
+    miniTreeBranch(std::string C, edm::InputTag S, std::string E, std::string O, std::string SE, std::string Mi, std::string Ba) :
       class_(C),src_(S),expr_(E),order_(O), selection_(SE),maxIndexName_(Mi),branchAlias_(Ba){
       branchTitle_= E+" calculated on "+C+" object from "+S.encode();
       if (O!="") branchTitle_+=" ordered according to "+O;
       if (SE!="") branchTitle_+=" selecting on "+SE;
-      edm::LogInfo("TreeBranch")<<"the branch with alias: "<<branchAlias_<<" corresponds to: "<<branchTitle_;
+      edm::LogInfo("miniTreeBranch")<<"the branch with alias: "<<branchAlias_<<" corresponds to: "<<branchTitle_;
     }
     
   const std::string & className() const { return class_;}
@@ -92,10 +92,10 @@ class TreeBranch {
 template <typename Object>
 class StringLeaveHelper {
  public:
-  typedef TreeBranch::value value;
+  typedef miniTreeBranch::value value;
   value operator()() { return value_;}
 
-  StringLeaveHelper(const TreeBranch & B, const edm::Event& iEvent)
+  StringLeaveHelper(const miniTreeBranch & B, const edm::Event& iEvent)
     {
       const float defaultValue = 0.;
       //    grab the object
@@ -128,10 +128,10 @@ class StringLeaveHelper {
 template <typename Object, typename Collection=std::vector<Object> >
 class StringBranchHelper {
 public:
-  typedef TreeBranch::value value;
+  typedef miniTreeBranch::value value;
   value operator()() { return value_;}
 
-  StringBranchHelper(const TreeBranch & B, const edm::Event& iEvent)
+  StringBranchHelper(const miniTreeBranch & B, const edm::Event& iEvent)
     {
       const float defaultValue = 0.;
 
@@ -199,11 +199,11 @@ public:
 
 
 
-class StringBasedNTupler : public NTupler {
+class miniStringBasedNTupler : public NTupler {
 
 
  public:
-  StringBasedNTupler(const edm::ParameterSet& iConfig){
+  miniStringBasedNTupler(const edm::ParameterSet& iConfig){
 
 
 
@@ -232,7 +232,7 @@ class StringBasedNTupler : public NTupler {
 	std::string branchAlias=branches[b]+"_"+leaves[l];
 	
 	//add a branch manager for this expression on this collection
-	branches_[maxName].push_back(TreeBranch(className, src, leave_expr, selection, order, maxName, branchAlias));
+	branches_[maxName].push_back(miniTreeBranch(className, src, leave_expr, selection, order, maxName, branchAlias));
       }//loop the provided leaves
       
       //do it once with configuration [vstring vars = { "x:x" ,... } ] where ":"=separator
@@ -253,7 +253,7 @@ class StringBasedNTupler : public NTupler {
 	  std::string branchAlias=branches[b]+"_"+name;
 
 	  //add a branch manager for this expression on this collection
-	  branches_[maxName].push_back(TreeBranch(className, src, expr, order, selection, maxName, branchAlias));
+	  branches_[maxName].push_back(miniTreeBranch(className, src, expr, order, selection, maxName, branchAlias));
 	}
       }
 
@@ -298,18 +298,18 @@ class StringBasedNTupler : public NTupler {
       edm::Service<TFileService> fs;      
       if (ownTheTree_){
 	ownTheTree_=true;
-	tree_=fs->make<TTree>(treeName_.c_str(),"StringBasedNTupler tree");
+	tree_=fs->make<TTree>(treeName_.c_str(),"miniStringBasedNTupler tree");
       }else{
 	TObject * object = fs->file().Get(treeName_.c_str());
 	if (!object){
 	  ownTheTree_=true;
-	  tree_=fs->make<TTree>(treeName_.c_str(),"StringBasedNTupler tree");
+	  tree_=fs->make<TTree>(treeName_.c_str(),"miniStringBasedNTupler tree");
 	}
 	else{
 	  tree_=dynamic_cast<TTree*>(object);
 	  if (!tree_){
 	    ownTheTree_=true;
-	    tree_=fs->make<TTree>(treeName_.c_str(),"StringBasedNTupler tree");
+	    tree_=fs->make<TTree>(treeName_.c_str(),"miniStringBasedNTupler tree");
 	  }
 	  else	  ownTheTree_=false;
 	}
@@ -325,10 +325,10 @@ class StringBasedNTupler : public NTupler {
 	//create a branch for the index: an integer
 	tree_->Branch(iB->first.c_str(), &(indexDataHolder_[indexOfIndexInDataHolder]),(iB->first+"/i").c_str());
 	//loop on the "leaves"
-	std::vector<TreeBranch>::iterator iL=iB->second.begin();
-	std::vector<TreeBranch>::iterator iL_end=iB->second.end();
+	std::vector<miniTreeBranch>::iterator iL=iB->second.begin();
+	std::vector<miniTreeBranch>::iterator iL_end=iB->second.end();
 	for(;iL!=iL_end;++iL){
-	  TreeBranch & b=*iL;
+	  miniTreeBranch & b=*iL;
 	  //create a branch for the leaves: vector of floats
 	  TBranch * br = tree_->Branch(b.branchAlias().c_str(),"std::vector<float>",iL->dataHolderPtrAdress());
 	  br->SetTitle(b.branchTitle().c_str());
@@ -355,10 +355,10 @@ class StringBasedNTupler : public NTupler {
 	//the index. should produce it only once
 	// a simple uint for the index
 	producer->produces<uint>(iB->first).setBranchAlias(iB->first);
-	std::vector<TreeBranch>::iterator iL=iB->second.begin();
-	std::vector<TreeBranch>::iterator iL_end=iB->second.end();
+	std::vector<miniTreeBranch>::iterator iL=iB->second.begin();
+	std::vector<miniTreeBranch>::iterator iL_end=iB->second.end();
 	for(;iL!=iL_end;++iL){
-	  TreeBranch & b=*iL;
+	  miniTreeBranch & b=*iL;
 	  //a vector of float for each leave
 	  producer->produces<std::vector<float> >(b.branchName()).setBranchAlias(b.branchAlias());
 	  nLeaves++;
@@ -369,7 +369,7 @@ class StringBasedNTupler : public NTupler {
   }
 
   void fill(edm::Event& iEvent){
-    //    if (!edm::Service<UpdaterService>()->checkOnce("StringBasedNTupler::fill")) return;
+    //    if (!edm::Service<UpdaterService>()->checkOnce("miniStringBasedNTupler::fill")) return;
     //well if you do that, you cannot have two ntupler of the same type in the same job...
 
     if (useTFileService_){
@@ -378,11 +378,11 @@ class StringBasedNTupler : public NTupler {
       Branches::iterator iB_end=branches_.end();
       uint indexOfIndexInDataHolder=0;
       for(;iB!=iB_end;++iB,++indexOfIndexInDataHolder){
-	std::vector<TreeBranch>::iterator iL=iB->second.begin();
-	std::vector<TreeBranch>::iterator iL_end=iB->second.end();
+	std::vector<miniTreeBranch>::iterator iL=iB->second.begin();
+	std::vector<miniTreeBranch>::iterator iL_end=iB->second.end();
 	uint maxS=0;
 	for(;iL!=iL_end;++iL){
-	  TreeBranch & b=*iL;
+	  miniTreeBranch & b=*iL;
 	  // grab the vector of values from the interpretation of expression for the associated collection
 	  std::auto_ptr<std::vector<float> > branch(b.branch(iEvent));
 	  // calculate the maximum index size.
@@ -436,11 +436,11 @@ class StringBasedNTupler : public NTupler {
       Branches::iterator iB=branches_.begin();
       Branches::iterator iB_end=branches_.end();
       for(;iB!=iB_end;++iB){
-	std::vector<TreeBranch>::iterator iL=iB->second.begin();
-	std::vector<TreeBranch>::iterator iL_end=iB->second.end();
+	std::vector<miniTreeBranch>::iterator iL=iB->second.begin();
+	std::vector<miniTreeBranch>::iterator iL_end=iB->second.end();
 	uint maxS=0;
 	for(;iL!=iL_end;++iL){
-	  TreeBranch & b=*iL;
+	  miniTreeBranch & b=*iL;
 	  std::auto_ptr<std::vector<float> > branch(b.branch(iEvent));
 	  if (branch->size()>maxS) maxS=branch->size();
 	  iEvent.put(branch, b.branchName());
@@ -459,17 +459,17 @@ class StringBasedNTupler : public NTupler {
       Branches::iterator iB_end=branches_.end();
       //de-allocate memory now: allocated in branch(...) and released to the pointer.
       for(;iB!=iB_end;++iB){
-	std::vector<TreeBranch>::iterator iL=iB->second.begin();
-	std::vector<TreeBranch>::iterator iL_end=iB->second.end();
+	std::vector<miniTreeBranch>::iterator iL=iB->second.begin();
+	std::vector<miniTreeBranch>::iterator iL_end=iB->second.end();
 	for(;iL!=iL_end;++iL){
-	  TreeBranch & b=*iL;
+	  miniTreeBranch & b=*iL;
 	  delete b.dataHolderPtr();
 	}
       }
     }
   }
 
-  ~StringBasedNTupler(){
+  ~miniStringBasedNTupler(){
     delete indexDataHolder_;
     delete ev_;
     delete run_;
@@ -482,7 +482,7 @@ class StringBasedNTupler : public NTupler {
   }
     
  protected:
-  typedef std::map<std::string, std::vector<TreeBranch> > Branches;
+  typedef std::map<std::string, std::vector<miniTreeBranch> > Branches;
   Branches branches_;
 
   bool ownTheTree_;

@@ -18,13 +18,13 @@ typedef ObjectSelector<SortCollectionSelector<reco::GenParticleCollection,Greate
 
 DEFINE_FWK_MODULE(GenParticleSorterByPt);
 
-//#include "CfANtupler/ConfigurableAnalysis/interface/ProcessIdSplitter.h"
+//#include "CfANtupler/minicfa/interface/ProcessIdSplitter.h"
 //DEFINE_EDM_PLUGIN(CachingVariableFactory, ProcessIdSplitter, "ProcessIdSplitter");
 
 
-#include "CfANtupler/ConfigurableAnalysis/interface/StringBasedNTupler.h"
-DEFINE_EDM_PLUGIN(NTuplerFactory, StringBasedNTupler, "StringBasedNTupler");
-#include "CfANtupler/ConfigurableAnalysis/interface/VariableNTupler.h"
-DEFINE_EDM_PLUGIN(NTuplerFactory, VariableNTupler, "VariableNTupler");
-#include "CfANtupler/ConfigurableAnalysis/interface/CompleteNTupler.h"
-DEFINE_EDM_PLUGIN(NTuplerFactory, CompleteNTupler, "CompleteNTupler");
+#include "CfANtupler/minicfa/interface/miniStringBasedNTupler.h"
+DEFINE_EDM_PLUGIN(NTuplerFactory, miniStringBasedNTupler, "miniStringBasedNTupler");
+#include "CfANtupler/minicfa/interface/miniVariableNTupler.h"
+DEFINE_EDM_PLUGIN(NTuplerFactory, miniVariableNTupler, "miniVariableNTupler");
+#include "CfANtupler/minicfa/interface/miniCompleteNTupler.h"
+DEFINE_EDM_PLUGIN(NTuplerFactory, miniCompleteNTupler, "miniCompleteNTupler");

@@ -1,22 +1,22 @@
 #include "PhysicsTools/UtilAlgos/interface/NTupler.h"
 
-#include "CfANtupler/ConfigurableAnalysis/interface/StringBasedNTupler.h"
-#include "CfANtupler/ConfigurableAnalysis/interface/VariableNTupler.h"
-#include "CfANtupler/ConfigurableAnalysis/interface/AdHocNTupler.h"
+#include "CfANtupler/minicfa/interface/miniStringBasedNTupler.h"
+#include "CfANtupler/minicfa/interface/miniVariableNTupler.h"
+#include "CfANtupler/minicfa/interface/miniAdHocNTupler.h"
 
-class CompleteNTupler : public NTupler {
+class miniCompleteNTupler : public NTupler {
  public:
-  CompleteNTupler(const edm::ParameterSet& iConfig){
-    sN = new StringBasedNTupler(iConfig);
+  miniCompleteNTupler(const edm::ParameterSet& iConfig){
+    sN = new miniStringBasedNTupler(iConfig);
     if (iConfig.exists("variablesPSet"))
       if (!iConfig.getParameter<edm::ParameterSet>("variablesPSet").empty())
-	vN = new VariableNTupler(iConfig);
+	vN = new miniVariableNTupler(iConfig);
       else vN=0;
     else
       vN=0;
     if (iConfig.exists("AdHocNPSet"))
       if (!iConfig.getParameter<edm::ParameterSet>("AdHocNPSet").empty())
-	aN = new AdHocNTupler(iConfig);
+	aN = new miniAdHocNTupler(iConfig);
       else aN=0;
     else
       aN=0;
@@ -46,9 +46,9 @@ class CompleteNTupler : public NTupler {
   }
 
  private:
-  StringBasedNTupler * sN;
-  VariableNTupler * vN;  
-  AdHocNTupler * aN;
+  miniStringBasedNTupler * sN;
+  miniVariableNTupler * vN;  
+  miniAdHocNTupler * aN;
 
 };
 
