@@ -269,6 +269,8 @@ class miniStringBasedNTupler : public NTupler {
     bunchCrossing_ = new uint;
     orbitNumber_ = new uint;
     weight_ = new float;
+    weightVector_ = new std::vector<float>;
+    weightIndex_ = new std::vector<int>;
     model_params_ = new std::string;
 
 
@@ -344,6 +346,8 @@ class miniStringBasedNTupler : public NTupler {
       tree_->Branch("bunchCrossing",bunchCrossing_,"bunchCrossing/i");
       tree_->Branch("orbitNumber",orbitNumber_,"orbitNumber/i");
       tree_->Branch("weight",weight_,"weight/f");
+      tree_->Branch("weightIndex",&weightIndex_);
+      tree_->Branch("weightVector",&weightVector_);
       tree_->Branch("model_params",&model_params_);
 
     }
@@ -405,10 +409,25 @@ class miniStringBasedNTupler : public NTupler {
       *orbitNumber_ = iEvent.orbitNumber();
 
       *weight_ = 1;
+      weightIndex_->clear();
+      weightVector_->clear();
       if(!iEvent.isRealData()) { 
         edm::Handle<GenEventInfoProduct> wgeneventinfo;
         iEvent.getByLabel("generator", wgeneventinfo);
         *weight_ = wgeneventinfo->weight();
+	// the following weights include variations of renormalization and factorization scales 
+	// and PDF eigenvectors
+        edm::Handle<LHEEventProduct> wLHEEventProduct;
+        iEvent.getByLabel("source", wLHEEventProduct);
+	std::vector<gen::WeightsInfo> extraWeights = wLHEEventProduct->weights();
+	unsigned int nWeights=extraWeights.size();
+	weightIndex_->reserve(nWeights);
+	weightVector_->reserve(nWeights);
+       	for(unsigned int i=0; i<nWeights; i++) {
+	  // the ID is stored as a string but in practice it is always an integer
+	  weightIndex_->push_back(atoi(extraWeights.at(i).id.c_str()));
+	  weightVector_->push_back(extraWeights.at(i).wgt);
+	}
       }
 
       typedef std::vector<std::string>::const_iterator comments_const_iterator;
@@ -478,6 +497,8 @@ class miniStringBasedNTupler : public NTupler {
     delete bunchCrossing_;
     delete orbitNumber_;
     delete weight_;
+    delete weightIndex_;
+    delete weightVector_;
     delete model_params_;
   }
     
@@ -497,6 +518,8 @@ class miniStringBasedNTupler : public NTupler {
   uint * bunchCrossing_;
   uint * orbitNumber_;
   float * weight_;
+  std::vector<float> * weightVector_;
+  std::vector<int> * weightIndex_;
   std::string * model_params_;
 
 };
