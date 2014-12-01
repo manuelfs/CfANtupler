@@ -419,14 +419,18 @@ class miniStringBasedNTupler : public NTupler {
 	// and PDF eigenvectors
         edm::Handle<LHEEventProduct> wLHEEventProduct;
         iEvent.getByLabel("source", wLHEEventProduct);
-	std::vector<gen::WeightsInfo> extraWeights = wLHEEventProduct->weights();
-	unsigned int nWeights=extraWeights.size();
-	weightIndex_->reserve(nWeights);
-	weightVector_->reserve(nWeights);
-       	for(unsigned int i=0; i<nWeights; i++) {
-	  // the ID is stored as a string but in practice it is always an integer
-	  weightIndex_->push_back(atoi(extraWeights.at(i).id.c_str()));
-	  weightVector_->push_back(extraWeights.at(i).wgt);
+	// these event weights are only defined in samples
+	// generated from LHE files
+	if(wLHEEventProduct.isValid()) {
+	  std::vector<gen::WeightsInfo> extraWeights = wLHEEventProduct->weights();
+	  unsigned int nWeights=extraWeights.size();
+	  weightIndex_->reserve(nWeights);
+	  weightVector_->reserve(nWeights);
+	  for(unsigned int i=0; i<nWeights; i++) {
+	    // the ID is stored as a string but in practice it is always an integer
+	    weightIndex_->push_back(atoi(extraWeights.at(i).id.c_str()));
+	    weightVector_->push_back(extraWeights.at(i).wgt);
+	  }
 	}
       }
 
