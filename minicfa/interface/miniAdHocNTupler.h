@@ -304,6 +304,18 @@ class miniAdHocNTupler : public NTupler {
      isotk_charge_ -> push_back( pfcand_charge->at(it));
    }
 
+   // tauID
+    for (unsigned int itau(0); itau < taus->size(); itau++) {
+      const pat::Tau &tau = (*taus)[itau];
+      taus_byCombinedIsolationDeltaBetaCorrRaw3Hits_->push_back( tau.tauID("byCombinedIsolationDeltaBetaCorrRaw3Hits") );
+      taus_byLooseCombinedIsolationDeltaBetaCorr3Hits_->push_back( tau.tauID("byLooseCombinedIsolationDeltaBetaCorr3Hits") );
+      taus_byMediumCombinedIsolationDeltaBetaCorr3Hits_->push_back( tau.tauID("byMediumCombinedIsolationDeltaBetaCorr3Hits") );
+      taus_byTightCombinedIsolationDeltaBetaCorr3Hits_->push_back( tau.tauID("byTightCombinedIsolationDeltaBetaCorr3Hits") );
+      taus_n_pfcands_->push_back( tau.numberOfSourceCandidatePtrs() );
+      taus_decayMode_->push_back( tau.pfEssential().decayMode_ );
+    } // Loop over taus
+
+   
 
     //fill the tree    
     if (ownTheTree_){ tree_->Fill(); }
@@ -346,6 +358,14 @@ class miniAdHocNTupler : public NTupler {
     (*isotk_iso_).clear();
     (*isotk_dzpv_).clear();
     (*isotk_charge_).clear();
+    
+    (*taus_byCombinedIsolationDeltaBetaCorrRaw3Hits_).clear();
+    (*taus_byLooseCombinedIsolationDeltaBetaCorr3Hits_).clear();
+    (*taus_byMediumCombinedIsolationDeltaBetaCorr3Hits_).clear();
+    (*taus_byTightCombinedIsolationDeltaBetaCorr3Hits_).clear();
+    (*taus_n_pfcands_).clear();
+    (*taus_decayMode_).clear();
+
   }
 
   uint registerleaves(edm::ProducerBase * producer){
@@ -421,6 +441,13 @@ class miniAdHocNTupler : public NTupler {
       tree_->Branch("isotk_iso",&isotk_iso_);
       tree_->Branch("isotk_dzpv",&isotk_dzpv_);
       tree_->Branch("isotk_charge",&isotk_charge_);
+
+      tree_->Branch("taus_byCombinedIsolationDeltaBetaCorrRaw3Hits",&taus_byCombinedIsolationDeltaBetaCorrRaw3Hits_);
+      tree_->Branch("taus_byLooseCombinedIsolationDeltaBetaCorr3Hits",&taus_byLooseCombinedIsolationDeltaBetaCorr3Hits_);
+      tree_->Branch("taus_byMediumCombinedIsolationDeltaBetaCorr3Hits",&taus_byMediumCombinedIsolationDeltaBetaCorr3Hits_);
+      tree_->Branch("taus_byTightCombinedIsolationDeltaBetaCorr3Hits",&taus_byTightCombinedIsolationDeltaBetaCorr3Hits_);
+      tree_->Branch("taus_n_pfcands",&taus_n_pfcands_);
+      tree_->Branch("taus_decayMode",&taus_decayMode_);
     }
 
     else{
@@ -512,7 +539,13 @@ class miniAdHocNTupler : public NTupler {
     isotk_dzpv_ = new std::vector<float>;
     isotk_charge_ = new std::vector<int>;
 
-
+    taus_byCombinedIsolationDeltaBetaCorrRaw3Hits_ = new std::vector<bool>;
+    taus_byLooseCombinedIsolationDeltaBetaCorr3Hits_ = new std::vector<bool>;
+    taus_byMediumCombinedIsolationDeltaBetaCorr3Hits_ = new std::vector<bool>;
+    taus_byTightCombinedIsolationDeltaBetaCorr3Hits_ = new std::vector<bool>;
+    taus_n_pfcands_ = new std::vector<int>;
+    taus_decayMode_ = new std::vector<int>;
+  
   }
 
   ~miniAdHocNTupler(){
@@ -570,6 +603,13 @@ class miniAdHocNTupler : public NTupler {
     delete isotk_dzpv_;
     delete isotk_charge_;
 
+    delete taus_byCombinedIsolationDeltaBetaCorrRaw3Hits_;
+    delete taus_byLooseCombinedIsolationDeltaBetaCorr3Hits_;
+    delete taus_byMediumCombinedIsolationDeltaBetaCorr3Hits_;
+    delete taus_byTightCombinedIsolationDeltaBetaCorr3Hits_;
+    delete taus_n_pfcands_;
+    delete taus_decayMode_;
+  
 
   }
 
@@ -634,5 +674,13 @@ class miniAdHocNTupler : public NTupler {
   std::vector<float> * isotk_iso_;
   std::vector<float> * isotk_dzpv_;
   std::vector<int> *   isotk_charge_;
+
+  std::vector<bool> *  taus_byCombinedIsolationDeltaBetaCorrRaw3Hits_;
+  std::vector<bool> *  taus_byLooseCombinedIsolationDeltaBetaCorr3Hits_;
+  std::vector<bool> *  taus_byMediumCombinedIsolationDeltaBetaCorr3Hits_;
+  std::vector<bool> *  taus_byTightCombinedIsolationDeltaBetaCorr3Hits_;
+  std::vector<int> *  taus_n_pfcands_;
+  std::vector<int> *  taus_decayMode_;
+ 
 
 };
