@@ -31,8 +31,13 @@
 
 #include "SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h"
 #include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h" 
+#include <fastjet/JetDefinition.hh>
+#include <fastjet/PseudoJet.hh>
+#include <fastjet/ClusterSequence.hh>
+#include <fastjet/GhostedAreaSpec.hh>
 
 using namespace std;
+using namespace fastjet;
 
 class miniAdHocNTupler : public NTupler {
  public:
@@ -41,6 +46,45 @@ class miniAdHocNTupler : public NTupler {
 
     nevents++;
 
+    //////////////// Fat jets //////////////////
+    edm::Handle<pat::JetCollection> jets;
+    iEvent.getByLabel("slimmedJets", jets);
+
+    JetDefinition jet_def_12(antikt_algorithm, 1.2);
+    //    vector<vector<PseudoJet>> fjets_vvector(0);
+    vector<PseudoJet> fjets_constituents(0), fjets(0);
+    vector<float> ptThresholds;
+    ptThresholds.push_back(30);
+    //const float etaThreshold(5);
+
+    for(unsigned int ipt(0); ipt < ptThresholds.size(); ipt++){
+      fjets_constituents.resize(0);
+      //cout<<endl<<"SKINNY JETS"<<endl;
+      for (unsigned int ijet(0); ijet < jets->size(); ijet++) {
+	const pat::Jet &jet = (*jets)[ijet];
+	//if(fabs(jet.eta()) > etaThreshold) continue;
+	if(jet.pt() < ptThresholds[ipt]) continue;
+	fjets_constituents.push_back(PseudoJet(jet.px(),jet.py(),jet.pz(),jet.energy()));
+	//cout<<"pt "<<jet.pt()<<", eta "<<jet.eta()<<", phi "<<jet.phi()<<endl;
+      }
+      ClusterSequence cs_fjets(fjets_constituents, jet_def_12);
+      fjets = sorted_by_pt(cs_fjets.inclusive_jets());
+      for (unsigned int ifjet(0); ifjet < fjets.size(); ifjet++) {
+	fjets30_pt->push_back(fjets[ifjet].pt());
+	fjets30_eta->push_back(fjets[ifjet].eta());
+	fjets30_phi->push_back(fjets[ifjet].phi());
+	fjets30_energy->push_back(fjets[ifjet].E());
+	fjets30_m->push_back(fjets[ifjet].m());
+      }
+
+//      cout<<endl<<"FAT JETS"<<endl;
+//      for (unsigned int ifjet(0); ifjet < fjets.size(); ifjet++) {
+//	cout<<"pt "<<fjets[ifjet].pt()<<", eta "<<fjets[ifjet].eta()<<", phi "<<fjets[ifjet].phi()<<endl;
+//      }
+//      fjets_vvector.push_back(fjets);
+    }
+
+
     //////////////// pfcands shenanigans //////////////////
     edm::Handle<pat::PackedCandidateCollection> pfcands;
     iEvent.getByLabel("packedPFCandidates", pfcands);
@@ -48,8 +92,6 @@ class miniAdHocNTupler : public NTupler {
     iEvent.getByLabel("slimmedMuons", muons);
     edm::Handle<pat::ElectronCollection> electrons;
     iEvent.getByLabel("slimmedElectrons", electrons);
-    edm::Handle<pat::JetCollection> jets;
-    iEvent.getByLabel("slimmedJets", jets);
     edm::Handle<pat::TauCollection> taus;
     iEvent.getByLabel("slimmedTaus", taus);
 
@@ -448,6 +490,14 @@ class miniAdHocNTupler : public NTupler {
       tree_->Branch("taus_byTightCombinedIsolationDeltaBetaCorr3Hits",&taus_byTightCombinedIsolationDeltaBetaCorr3Hits_);
       tree_->Branch("taus_n_pfcands",&taus_n_pfcands_);
       tree_->Branch("taus_decayMode",&taus_decayMode_);
+
+      tree_->Branch("fjets30_pt", &fjets30_pt);  
+      tree_->Branch("fjets30_eta", &fjets30_eta);
+      tree_->Branch("fjets30_phi", &fjets30_phi);
+      tree_->Branch("fjets30_energy",&fjets30_energy);
+      tree_->Branch("fjets30_m",&fjets30_m);
+
+
     }
 
     else{
@@ -546,6 +596,12 @@ class miniAdHocNTupler : public NTupler {
     taus_n_pfcands_ = new std::vector<int>;
     taus_decayMode_ = new std::vector<int>;
   
+    fjets30_pt =     new std::vector<float>;
+    fjets30_eta =    new std::vector<float>;
+    fjets30_phi =    new std::vector<float>;
+    fjets30_energy = new std::vector<float>;
+    fjets30_m =     new std::vector<float>;
+
   }
 
   ~miniAdHocNTupler(){
@@ -610,6 +666,11 @@ class miniAdHocNTupler : public NTupler {
     delete taus_n_pfcands_;
     delete taus_decayMode_;
   
+    delete fjets30_pt;
+    delete fjets30_eta;
+    delete fjets30_phi;
+    delete fjets30_energy;
+    delete fjets30_m;
 
   }
 
@@ -682,5 +743,11 @@ class miniAdHocNTupler : public NTupler {
   std::vector<int> *  taus_n_pfcands_;
   std::vector<int> *  taus_decayMode_;
  
+  std::vector<float> * fjets30_pt;
+  std::vector<float> * fjets30_eta;
+  std::vector<float> * fjets30_phi;
+  std::vector<float> * fjets30_energy;
+  std::vector<float> * fjets30_m;
+
 
 };

@@ -8,6 +8,8 @@
 <use   name="DataFormats/PatCandidates"/>
 <use   name="DataFormats/L1Trigger"/>
 <use   name="DataFormats/JetReco"/>
+<use   name="fastjet"/>
+<use   name="fastjet-contrib"/>
 <use   name="root"/>
 <use   name="RecoEgamma/EgammaTools"/>
 <export>
