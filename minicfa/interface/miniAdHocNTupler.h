@@ -408,6 +408,14 @@ class miniAdHocNTupler : public NTupler {
     (*taus_n_pfcands_).clear();
     (*taus_decayMode_).clear();
 
+    (*fjets30_pt).clear();
+    (*fjets30_eta).clear();
+    (*fjets30_phi).clear();
+    (*fjets30_energy).clear();
+    (*fjets30_m).clear();
+
+
+
   }
 
   uint registerleaves(edm::ProducerBase * producer){
