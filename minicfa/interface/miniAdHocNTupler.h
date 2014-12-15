@@ -198,7 +198,8 @@ class miniAdHocNTupler : public NTupler {
       } // If tau has one constituent
     } // Loop over taus
 
-    //////////////// Pile up information //////////////////
+    //////////////// Pile up and generator information //////////////////
+    double htEvent = 0.0;
     if(!iEvent.isRealData()) { //Access PU info in MC
       edm::Handle<std::vector< PileupSummaryInfo > >  PupInfo;
       iEvent.getByLabel("addPileupInfo", PupInfo);
@@ -218,6 +219,23 @@ class miniAdHocNTupler : public NTupler {
 	(*PU_ntrks_lowpT_).push_back(PVI->getPU_ntrks_lowpT());
 	(*PU_ntrks_highpT_).push_back(PVI->getPU_ntrks_highpT());
       }
+
+      edm::Handle<LHEEventProduct> product;
+      if(iEvent.getByLabel("externalLHEProducer", product)){
+	iEvent.getByLabel("externalLHEProducer", product);
+	const lhef::HEPEUP hepeup_ = product->hepeup();
+	const std::vector<lhef::HEPEUP::FiveVector> pup_ = hepeup_.PUP;
+     
+	size_t iMax = hepeup_.NUP;
+	for(size_t i = 2; i < iMax; ++i) {
+	  if( hepeup_.ISTUP[i] != 1 ) continue;
+	  int idabs = abs( hepeup_.IDUP[i] );
+	  if( idabs != 21 && (idabs<1 || idabs>6) ) continue;
+	  double ptPart = sqrt( pow(hepeup_.PUP[i][0],2) + pow(hepeup_.PUP[i][1],2) );
+	  htEvent += ptPart;
+	} 
+      }
+      *genHT_ = htEvent;
     } // if it's not real data
 
 
@@ -460,6 +478,8 @@ class miniAdHocNTupler : public NTupler {
       tree_->Branch("PU_NumInteractions",&PU_NumInteractions_);
       tree_->Branch("PU_bunchCrossing",&PU_bunchCrossing_);
       tree_->Branch("PU_TrueNumInteractions",&PU_TrueNumInteractions_);
+ 
+      tree_->Branch("genHT",genHT_,"genHT/F");
 
       tree_->Branch("trackingfailurefilter_decision", trackingfailurefilter_decision_ ,"trackingfailurefilter_decision/I");    
       tree_->Branch("goodVerticesfilter_decision", goodVerticesfilter_decision_	 ,"goodVerticesfilter_decision/I");
@@ -564,6 +584,8 @@ class miniAdHocNTupler : public NTupler {
     PU_bunchCrossing_ = new std::vector<int>;
     PU_TrueNumInteractions_ = new std::vector<float>;
 
+    genHT_ = new float;
+
     trackingfailurefilter_decision_			= new int;   
     goodVerticesfilter_decision_			= new int;
     cschalofilter_decision_				= new int;    
@@ -634,6 +656,8 @@ class miniAdHocNTupler : public NTupler {
     delete PU_NumInteractions_;
     delete PU_bunchCrossing_;
     delete PU_TrueNumInteractions_;
+
+    delete genHT_;
 
     delete trackingfailurefilter_decision_		     ;
     delete goodVerticesfilter_decision_		     ;
@@ -710,6 +734,8 @@ class miniAdHocNTupler : public NTupler {
   std::vector<int> * PU_NumInteractions_;
   std::vector<int> * PU_bunchCrossing_;
   std::vector<float> * PU_TrueNumInteractions_;
+
+  float * genHT_;
  
   int *trackingfailurefilter_decision_		     ;
   int *goodVerticesfilter_decision_		     ;
