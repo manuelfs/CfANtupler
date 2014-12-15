@@ -566,6 +566,7 @@ cfA = cms.EDFilter("minicfa",
                         'parton_Energy:genParton.energy',
                         'parton_mass:genParton.mass',                        
                         'partonFlavour:partonFlavour',  #TL add
+                        'gen_pt:genJet.pt',
                         'jetCharge:jetCharge',
                         'chgEmE:chargedEmEnergy',
                         'chgHadE:chargedHadronEnergy',
