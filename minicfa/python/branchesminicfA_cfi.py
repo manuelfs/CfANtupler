@@ -309,7 +309,10 @@ cfA = cms.EDFilter("minicfa",
                         'Type7EtFraction:Type7EtFraction',
                         'sumEt:sumEt', 
                         'unCPhi:uncorrectedPhi', 
-                        'unCPt:uncorrectedPt')
+                        'unCPt:uncorrectedPt',
+                        'gen_et:genMET.pt',
+                        'gen_phi:genMET.phi'
+                        )
                 ),
                 Class = cms.string('pat::MET')
             ),

@@ -77,11 +77,11 @@ class miniAdHocNTupler : public NTupler {
 	fjets30_m->push_back(fjets[ifjet].m());
       }
 
-//      cout<<endl<<"FAT JETS"<<endl;
-//      for (unsigned int ifjet(0); ifjet < fjets.size(); ifjet++) {
-//	cout<<"pt "<<fjets[ifjet].pt()<<", eta "<<fjets[ifjet].eta()<<", phi "<<fjets[ifjet].phi()<<endl;
-//      }
-//      fjets_vvector.push_back(fjets);
+      //      cout<<endl<<"FAT JETS"<<endl;
+      //      for (unsigned int ifjet(0); ifjet < fjets.size(); ifjet++) {
+      //	cout<<"pt "<<fjets[ifjet].pt()<<", eta "<<fjets[ifjet].eta()<<", phi "<<fjets[ifjet].phi()<<endl;
+      //      }
+      //      fjets_vvector.push_back(fjets);
     }
 
 
@@ -94,6 +94,8 @@ class miniAdHocNTupler : public NTupler {
     iEvent.getByLabel("slimmedElectrons", electrons);
     edm::Handle<pat::TauCollection> taus;
     iEvent.getByLabel("slimmedTaus", taus);
+    edm::Handle<pat::METCollection> mets;
+    iEvent.getByLabel("slimmedMETs", mets);
 
     vector<const pat::PackedCandidate*> el_pfmatch, mu_pfmatch; 
     for (const pat::PackedCandidate &pfc : *pfcands) {
@@ -341,7 +343,7 @@ class miniAdHocNTupler : public NTupler {
     if(L1trigger) cout<<"Level 1 decision: "<<L1trigger->decision()<<endl;
 
 
-   //isolated pf candidates as found by TrackIsolationMaker                                                                               
+    //isolated pf candidates as found by TrackIsolationMaker                                                                               
     edm::Handle< vector<float> > pfcand_dzpv;
     iEvent.getByLabel("trackIsolationMaker","pfcandsdzpv", pfcand_dzpv);
     edm::Handle< vector<float> > pfcand_pt;
@@ -355,16 +357,16 @@ class miniAdHocNTupler : public NTupler {
     edm::Handle< vector<int> > pfcand_charge;
     iEvent.getByLabel("trackIsolationMaker","pfcandschg", pfcand_charge);
 
-   for (size_t it=0; it<pfcand_pt->size(); ++it ) {
-     isotk_pt_->push_back( pfcand_pt->at(it));
-     isotk_phi_ -> push_back( pfcand_phi->at(it));
-     isotk_eta_ -> push_back( pfcand_eta->at(it));
-     isotk_iso_ -> push_back( pfcand_iso->at(it));
-     isotk_dzpv_ -> push_back( pfcand_dzpv->at(it));
-     isotk_charge_ -> push_back( pfcand_charge->at(it));
-   }
+    for (size_t it=0; it<pfcand_pt->size(); ++it ) {
+      isotk_pt_->push_back( pfcand_pt->at(it));
+      isotk_phi_ -> push_back( pfcand_phi->at(it));
+      isotk_eta_ -> push_back( pfcand_eta->at(it));
+      isotk_iso_ -> push_back( pfcand_iso->at(it));
+      isotk_dzpv_ -> push_back( pfcand_dzpv->at(it));
+      isotk_charge_ -> push_back( pfcand_charge->at(it));
+    }
 
-   // tauID
+    // tauID
     for (unsigned int itau(0); itau < taus->size(); itau++) {
       const pat::Tau &tau = (*taus)[itau];
       taus_byCombinedIsolationDeltaBetaCorrRaw3Hits_->push_back( tau.tauID("byCombinedIsolationDeltaBetaCorrRaw3Hits") );
@@ -374,6 +376,21 @@ class miniAdHocNTupler : public NTupler {
       taus_n_pfcands_->push_back( tau.numberOfSourceCandidatePtrs() );
       taus_decayMode_->push_back( tau.pfEssential().decayMode_ );
     } // Loop over taus
+
+    // MET
+    const pat::MET &met = mets->front();
+    *pfType1mets_uncert_JetEnUp_dpx_ = met.shiftedPx(pat::MET::JetEnUp)-met.px();
+    *pfType1mets_uncert_JetEnUp_dpy_ = met.shiftedPy(pat::MET::JetEnUp)-met.py();
+    *pfType1mets_uncert_JetEnUp_sumEt_ = met.shiftedSumEt(pat::MET::JetEnUp)-met.sumEt();
+    *pfType1mets_uncert_JetEnDown_dpx_ = met.shiftedPx(pat::MET::JetEnDown)-met.px();
+    *pfType1mets_uncert_JetEnDown_dpy_ = met.shiftedPy(pat::MET::JetEnDown)-met.py();
+    *pfType1mets_uncert_JetEnDown_sumEt_ = met.shiftedSumEt(pat::MET::JetEnDown)-met.sumEt();
+    *pfType1mets_uncert_JetResUp_dpx_ = met.shiftedPx(pat::MET::JetResUp)-met.px();
+    *pfType1mets_uncert_JetResUp_dpy_ = met.shiftedPy(pat::MET::JetResUp)-met.py();
+    *pfType1mets_uncert_JetResUp_sumEt_ = met.shiftedSumEt(pat::MET::JetResUp)-met.sumEt();
+    *pfType1mets_uncert_JetResDown_dpx_ = met.shiftedPx(pat::MET::JetResDown)-met.px();
+    *pfType1mets_uncert_JetResDown_dpy_ = met.shiftedPy(pat::MET::JetResDown)-met.py();
+    *pfType1mets_uncert_JetResDown_sumEt_ = met.shiftedSumEt(pat::MET::JetResDown)-met.sumEt();
 
    
 
@@ -525,6 +542,19 @@ class miniAdHocNTupler : public NTupler {
       tree_->Branch("fjets30_energy",&fjets30_energy);
       tree_->Branch("fjets30_m",&fjets30_m);
 
+      tree_->Branch("pfType1mets_uncert_JetEnUp_dpx", pfType1mets_uncert_JetEnUp_dpx_, "pfType1mets_uncert_JetEnUp_dpx/F");
+      tree_->Branch("pfType1mets_uncert_JetEnUp_dpy", pfType1mets_uncert_JetEnUp_dpy_, "pfType1mets_uncert_JetEnUp_dpy/F");
+      tree_->Branch("pfType1mets_uncert_JetEnUp_sumEt", pfType1mets_uncert_JetEnUp_sumEt_, "pfType1mets_uncert_JetEnUp_sumEt/F");
+      tree_->Branch("pfType1mets_uncert_JetEnDown_dpx", pfType1mets_uncert_JetEnDown_dpx_, "pfType1mets_uncert_JetEnDown_dpx/F");
+      tree_->Branch("pfType1mets_uncert_JetEnDown_dpy", pfType1mets_uncert_JetEnDown_dpy_, "pfType1mets_uncert_JetEnDown_dpy/F");
+      tree_->Branch("pfType1mets_uncert_JetEnDown_sumEt", pfType1mets_uncert_JetEnDown_sumEt_, "pfType1mets_uncert_JetEnDown_sumEt/F");
+      tree_->Branch("pfType1mets_uncert_JetResUp_dpx", pfType1mets_uncert_JetResUp_dpx_, "pfType1mets_uncert_JetResUp_dpx/F");
+      tree_->Branch("pfType1mets_uncert_JetResUp_dpy", pfType1mets_uncert_JetResUp_dpy_, "pfType1mets_uncert_JetResUp_dpy/F");
+      tree_->Branch("pfType1mets_uncert_JetResUp_sumEt", pfType1mets_uncert_JetResUp_sumEt_, "pfType1mets_uncert_JetResUp_sumEt/F");
+      tree_->Branch("pfType1mets_uncert_JetResDown_dpx", pfType1mets_uncert_JetResDown_dpx_, "pfType1mets_uncert_JetResDown_dpx/F");
+      tree_->Branch("pfType1mets_uncert_JetResDown_dpy", pfType1mets_uncert_JetResDown_dpy_, "pfType1mets_uncert_JetResDown_dpy/F");
+      tree_->Branch("pfType1mets_uncert_JetResDown_sumEt", pfType1mets_uncert_JetResDown_sumEt_, "pfType1mets_uncert_JetResDown_sumEt/F");
+
 
     }
 
@@ -632,6 +662,19 @@ class miniAdHocNTupler : public NTupler {
     fjets30_energy = new std::vector<float>;
     fjets30_m =     new std::vector<float>;
 
+    pfType1mets_uncert_JetEnUp_dpx_ =     new float;
+    pfType1mets_uncert_JetEnUp_dpy_ =    new float;
+    pfType1mets_uncert_JetEnUp_sumEt_ =    new float;
+    pfType1mets_uncert_JetEnDown_dpx_ =     new float;
+    pfType1mets_uncert_JetEnDown_dpy_ =    new float;
+    pfType1mets_uncert_JetEnDown_sumEt_ =    new float;
+    pfType1mets_uncert_JetResUp_dpx_ =     new float;
+    pfType1mets_uncert_JetResUp_dpy_ =    new float;
+    pfType1mets_uncert_JetResUp_sumEt_ =    new float;
+    pfType1mets_uncert_JetResDown_dpx_ =     new float;
+    pfType1mets_uncert_JetResDown_dpy_ =    new float;
+    pfType1mets_uncert_JetResDown_sumEt_ =    new float;
+ 
   }
 
   ~miniAdHocNTupler(){
@@ -703,6 +746,19 @@ class miniAdHocNTupler : public NTupler {
     delete fjets30_phi;
     delete fjets30_energy;
     delete fjets30_m;
+
+    delete pfType1mets_uncert_JetEnUp_dpx_;
+    delete pfType1mets_uncert_JetEnUp_dpy_;
+    delete pfType1mets_uncert_JetEnUp_sumEt_;
+    delete pfType1mets_uncert_JetEnDown_dpx_;
+    delete pfType1mets_uncert_JetEnDown_dpy_;
+    delete pfType1mets_uncert_JetEnDown_sumEt_;
+    delete pfType1mets_uncert_JetResUp_dpx_;
+    delete pfType1mets_uncert_JetResUp_dpy_;
+    delete pfType1mets_uncert_JetResUp_sumEt_;
+    delete pfType1mets_uncert_JetResDown_dpx_;
+    delete pfType1mets_uncert_JetResDown_dpy_;
+    delete pfType1mets_uncert_JetResDown_sumEt_;
 
   }
 
@@ -783,5 +839,17 @@ class miniAdHocNTupler : public NTupler {
   std::vector<float> * fjets30_energy;
   std::vector<float> * fjets30_m;
 
+  float *pfType1mets_uncert_JetEnUp_dpx_;
+  float *pfType1mets_uncert_JetEnUp_dpy_;
+  float *pfType1mets_uncert_JetEnUp_sumEt_;
+  float *pfType1mets_uncert_JetEnDown_dpx_;
+  float *pfType1mets_uncert_JetEnDown_dpy_;
+  float *pfType1mets_uncert_JetEnDown_sumEt_;
+  float *pfType1mets_uncert_JetResUp_dpx_;
+  float *pfType1mets_uncert_JetResUp_dpy_;
+  float *pfType1mets_uncert_JetResUp_sumEt_;
+  float *pfType1mets_uncert_JetResDown_dpx_;
+  float *pfType1mets_uncert_JetResDown_dpy_;
+  float *pfType1mets_uncert_JetResDown_sumEt_;
 
 };
