@@ -55,14 +55,14 @@ class miniAdHocNTupler : public NTupler {
     vector<PseudoJet> fjets_constituents(0), fjets(0);
     vector<float> ptThresholds;
     ptThresholds.push_back(30);
-    //const float etaThreshold(5);
+    const float etaThreshold(5);
 
     for(unsigned int ipt(0); ipt < ptThresholds.size(); ipt++){
       fjets_constituents.resize(0);
       //cout<<endl<<"SKINNY JETS"<<endl;
       for (unsigned int ijet(0); ijet < jets->size(); ijet++) {
 	const pat::Jet &jet = (*jets)[ijet];
-	//if(fabs(jet.eta()) > etaThreshold) continue;
+	if(fabs(jet.eta()) > etaThreshold) continue;
 	if(jet.pt() < ptThresholds[ipt]) continue;
 	fjets_constituents.push_back(PseudoJet(jet.px(),jet.py(),jet.pz(),jet.energy()));
 	//cout<<"pt "<<jet.pt()<<", eta "<<jet.eta()<<", phi "<<jet.phi()<<endl;
