@@ -40,7 +40,89 @@ using namespace std;
 using namespace fastjet;
 
 class miniAdHocNTupler : public NTupler {
- public:
+  public:
+
+  double getPFIsolation(edm::Handle<pat::PackedCandidateCollection> pfcands,
+                        const reco::Candidate* ptcl,  
+                        double r_iso_min, double r_iso_max, double kt_scale,
+                        bool use_pfweight, bool charged_only) {
+
+    if (ptcl->pt()<5.) return 99999.;
+
+    double deadcone_nh(0.), deadcone_ch(0.), deadcone_ph(0.), deadcone_pu(0.);
+    if(ptcl->isElectron()) {
+      if (fabs(ptcl->eta())>1.479) {deadcone_ch = 0.015; deadcone_pu = 0.015; deadcone_ph = 0.08;}
+    } else if(ptcl->isMuon()) {
+      deadcone_ch = 0.0001; deadcone_pu = 0.01; deadcone_ph = 0.01;deadcone_nh = 0.01;  
+    } else {
+      //deadcone_ch = 0.0001; deadcone_pu = 0.01; deadcone_ph = 0.01;deadcone_nh = 0.01; // maybe use muon cones??
+    }
+
+    double iso_nh(0.); double iso_ch(0.); 
+    double iso_ph(0.); double iso_pu(0.);
+    double ptThresh(0.5);
+    if(ptcl->isElectron()) ptThresh = 0;
+    double r_iso = max(r_iso_min,min(r_iso_max, kt_scale/ptcl->pt()));
+    for (const pat::PackedCandidate &pfc : *pfcands) {
+      if (abs(pfc.pdgId())<7) continue;
+
+      double dr = deltaR(pfc, *ptcl);
+      if (dr > r_iso) continue;
+      
+      //////////////////  NEUTRALS  /////////////////////////
+      if (pfc.charge()==0){
+        if (pfc.pt()>ptThresh) {
+          double wpf(1.);
+          if (use_pfweight){
+            double wpv(0.), wpu(0.);
+            for (const pat::PackedCandidate &jpfc : *pfcands) {
+              double jdr = deltaR(pfc, jpfc);
+              if (pfc.charge()!=0 || jdr<0.00001) continue;
+              double jpt = jpfc.pt();
+              if (pfc.fromPV()>1) wpv *= jpt/jdr;
+              else wpu *= jpt/jdr;
+            }
+            wpv = log(wpv);
+            wpu = log(wpu);
+            wpf = wpv/(wpv+wpu);
+          }
+          /////////// PHOTONS ////////////
+          if (abs(pfc.pdgId())==22) {
+            if(dr < deadcone_ph) continue;
+            iso_ph += wpf*pfc.pt();
+          /////////// NEUTRAL HADRONS ////////////
+          } else if (abs(pfc.pdgId())==130) {
+            if(dr < deadcone_nh) continue;
+            iso_nh += wpf*pfc.pt();
+          }
+        }
+        //////////////////  CHARGED from PV  /////////////////////////
+      } else if (pfc.fromPV()>1){
+        if (abs(pfc.pdgId())==211) {
+          if(dr < deadcone_ch) continue;
+          iso_ch += pfc.pt();
+        }
+        //////////////////  CHARGED from PU  /////////////////////////
+      } else {
+        if (pfc.pt()>ptThresh){
+          if(dr < deadcone_pu) continue;
+          iso_pu += pfc.pt();
+        }
+      }
+    }
+    double iso(0.);
+    if (charged_only){
+      iso = iso_ch;
+    } else {
+      iso = iso_ph + iso_nh;
+      if (!use_pfweight) iso -= 0.5*iso_pu;
+      if (iso>0) iso += iso_ch;
+      else iso = iso_ch;
+    }
+    iso = iso/ptcl->pt();
+
+    return iso;
+  }
 
   void fill(edm::Event& iEvent){
 
@@ -61,20 +143,20 @@ class miniAdHocNTupler : public NTupler {
       fjets_constituents.resize(0);
       //cout<<endl<<"SKINNY JETS"<<endl;
       for (unsigned int ijet(0); ijet < jets->size(); ijet++) {
-	const pat::Jet &jet = (*jets)[ijet];
-	if(fabs(jet.eta()) > etaThreshold) continue;
-	if(jet.pt() < ptThresholds[ipt]) continue;
-	fjets_constituents.push_back(PseudoJet(jet.px(),jet.py(),jet.pz(),jet.energy()));
-	//cout<<"pt "<<jet.pt()<<", eta "<<jet.eta()<<", phi "<<jet.phi()<<endl;
+        const pat::Jet &jet = (*jets)[ijet];
+        if(fabs(jet.eta()) > etaThreshold) continue;
+        if(jet.pt() < ptThresholds[ipt]) continue;
+        fjets_constituents.push_back(PseudoJet(jet.px(),jet.py(),jet.pz(),jet.energy()));
+        //cout<<"pt "<<jet.pt()<<", eta "<<jet.eta()<<", phi "<<jet.phi()<<endl;
       }
       ClusterSequence cs_fjets(fjets_constituents, jet_def_12);
       fjets = sorted_by_pt(cs_fjets.inclusive_jets());
       for (unsigned int ifjet(0); ifjet < fjets.size(); ifjet++) {
-	fjets30_pt->push_back(fjets[ifjet].pt());
-	fjets30_eta->push_back(fjets[ifjet].eta());
-	fjets30_phi->push_back(fjets[ifjet].phi());
-	fjets30_energy->push_back(fjets[ifjet].E());
-	fjets30_m->push_back(fjets[ifjet].m());
+        fjets30_pt->push_back(fjets[ifjet].pt());
+        fjets30_eta->push_back(fjets[ifjet].eta());
+        fjets30_phi->push_back(fjets[ifjet].phi());
+        fjets30_energy->push_back(fjets[ifjet].E());
+        fjets30_m->push_back(fjets[ifjet].m());
       }
 
       //      cout<<endl<<"FAT JETS"<<endl;
@@ -100,14 +182,14 @@ class miniAdHocNTupler : public NTupler {
     vector<const pat::PackedCandidate*> el_pfmatch, mu_pfmatch; 
     for (const pat::PackedCandidate &pfc : *pfcands) {
       for (unsigned int ilep(0); ilep < electrons->size(); ilep++) {
-	const pat::Electron &lep = (*electrons)[ilep];
-	if(el_pfmatch.size() <= ilep) el_pfmatch.push_back(&pfc);
-	else if(lep.pdgId()==pfc.pdgId() && deltaR(pfc, lep) < deltaR(*(el_pfmatch[ilep]), lep)) el_pfmatch[ilep] = &pfc;
+        const pat::Electron &lep = (*electrons)[ilep];
+        if(el_pfmatch.size() <= ilep) el_pfmatch.push_back(&pfc);
+        else if(lep.pdgId()==pfc.pdgId() && deltaR(pfc, lep) < deltaR(*(el_pfmatch[ilep]), lep)) el_pfmatch[ilep] = &pfc;
       }
       for (unsigned int ilep(0); ilep < muons->size(); ilep++) {
-	const pat::Muon &lep = (*muons)[ilep];
-	if(mu_pfmatch.size() <= ilep) mu_pfmatch.push_back(&pfc);
-	else if(lep.pdgId()==pfc.pdgId() && deltaR(pfc, lep) < deltaR(*(mu_pfmatch[ilep]), lep)) mu_pfmatch[ilep] = &pfc;
+        const pat::Muon &lep = (*muons)[ilep];
+        if(mu_pfmatch.size() <= ilep) mu_pfmatch.push_back(&pfc);
+        else if(lep.pdgId()==pfc.pdgId() && deltaR(pfc, lep) < deltaR(*(mu_pfmatch[ilep]), lep)) mu_pfmatch[ilep] = &pfc;
       }
     } // Loop over pfcands
 
@@ -115,8 +197,10 @@ class miniAdHocNTupler : public NTupler {
     for (unsigned int ilep(0); ilep < electrons->size(); ilep++) {
       const pat::Electron &lep = (*electrons)[ilep];
       els_isPF->push_back(deltaR(lep, *el_pfmatch[ilep]) < 0.1 && abs(lep.p()-el_pfmatch[ilep]->p())/lep.p()<0.05 &&
-			  lep.pdgId() == el_pfmatch[ilep]->pdgId());
+                  lep.pdgId() == el_pfmatch[ilep]->pdgId());
       els_jet_ind->push_back(-1);
+
+      els_miniso->push_back(getPFIsolation(pfcands, dynamic_cast<const reco::Candidate *>(&lep), 0.05, 0.2, 10., false, false));
     }
 
     // Finding muon PF match
@@ -124,6 +208,8 @@ class miniAdHocNTupler : public NTupler {
       const pat::Muon &lep = (*muons)[ilep];
       mus_isPF->push_back(lep.numberOfSourceCandidatePtrs()==1 && lep.sourceCandidatePtr(0)->pdgId()==lep.pdgId());
       mus_jet_ind->push_back(-1);
+
+      mus_miniso->push_back(getPFIsolation(pfcands, dynamic_cast<const reco::Candidate *>(&lep), 0.05, 0.2, 10., false, false));
     }
 
     // Finding leptons in jets
@@ -135,40 +221,39 @@ class miniAdHocNTupler : public NTupler {
       float maxp(-99.), maxp_mu(-99.), maxp_el(-99.);
       int maxid(0);
       for (unsigned int i = 0, n = jet.numberOfSourceCandidatePtrs(); i < n; ++i) {
-	const pat::PackedCandidate &pfc = dynamic_cast<const pat::PackedCandidate &>(*jet.sourceCandidatePtr(i));
-	int pf_id = pfc.pdgId();
-	float pf_p = pfc.p();
-	if(pf_p > maxp){
-	  maxp = pf_p;
-	  maxid = pf_id;
-	}
+        const pat::PackedCandidate &pfc = dynamic_cast<const pat::PackedCandidate &>(*jet.sourceCandidatePtr(i));
+        int pf_id = pfc.pdgId();
+        float pf_p = pfc.p();
+        if(pf_p > maxp){
+          maxp = pf_p;
+          maxid = pf_id;
+        }
 
-	if(abs(pf_id) == 11){
-	  for (unsigned int ilep(0); ilep < electrons->size(); ilep++) {
-	    if(&pfc == el_pfmatch[ilep]){
-	      els_jet_ind->at(ilep) = ijet;
-	      if(pf_p > maxp_el){
-		maxp_el = pf_p;
-		jets_AK4_el_ind->at(ijet) = ilep; // Storing the index of the highest pt electron in jet
-	      }
-	      break;
-	    }
-	  } // Loop over electrons
-	} // If pfc is an electron
+        if(abs(pf_id) == 11){
+          for (unsigned int ilep(0); ilep < electrons->size(); ilep++) {
+            if(&pfc == el_pfmatch[ilep]){
+              els_jet_ind->at(ilep) = ijet;
+              if(pf_p > maxp_el){
+                maxp_el = pf_p;
+                jets_AK4_el_ind->at(ijet) = ilep; // Storing the index of the highest pt electron in jet
+              }
+              break;
+            }
+          } // Loop over electrons
+        } // If pfc is an electron
 
-	if(abs(pf_id) == 13){
-	  for (unsigned int ilep(0); ilep < muons->size(); ilep++) {
-	    if(&pfc == mu_pfmatch[ilep]){
-	      mus_jet_ind->at(ilep) = ijet;
-	      if(pf_p > maxp_mu){
-		maxp_mu = pf_p;
-		jets_AK4_mu_ind->at(ijet) = ilep; // Storing the index of the highest pt muon in jet
-	      }
-	      break;
-	    }
-	  } // Loop over muons
-	} // If pfc is an muon
-
+        if(abs(pf_id) == 13){
+          for (unsigned int ilep(0); ilep < muons->size(); ilep++) {
+            if(&pfc == mu_pfmatch[ilep]){
+              mus_jet_ind->at(ilep) = ijet;
+              if(pf_p > maxp_mu){
+                maxp_mu = pf_p;
+                jets_AK4_mu_ind->at(ijet) = ilep; // Storing the index of the highest pt muon in jet
+              }
+              break;
+            }
+          } // Loop over muons
+        } // If pfc is an muon
       } // Loop over jet constituents
       jets_AK4_maxpt_id->push_back(maxid);
     } // Loop over jets
@@ -180,23 +265,23 @@ class miniAdHocNTupler : public NTupler {
       taus_el_ind->push_back(-1);
 
       if(tau.numberOfSourceCandidatePtrs() == 1){
-	const pat::PackedCandidate &pfc = dynamic_cast<const pat::PackedCandidate &> (*tau.sourceCandidatePtr(0));
-	if(abs(pfc.pdgId())==11){
-	  for (unsigned int ilep(0); ilep < electrons->size(); ilep++) {
-	    if(&pfc == el_pfmatch[ilep]){
-	      taus_el_ind->at(itau) = ilep;
-	      break;
-	    } 
-	  } // Loop over electrons
-	}
-	if(abs(pfc.pdgId())==13){
-	  for (unsigned int ilep(0); ilep < muons->size(); ilep++) {
-	    if(&pfc == mu_pfmatch[ilep]){
-	      taus_mu_ind->at(itau) = ilep;
-	      break;
-	    } 
-	  } // Loop over electrons
-	}
+        const pat::PackedCandidate &pfc = dynamic_cast<const pat::PackedCandidate &> (*tau.sourceCandidatePtr(0));
+        if(abs(pfc.pdgId())==11){
+          for (unsigned int ilep(0); ilep < electrons->size(); ilep++) {
+            if(&pfc == el_pfmatch[ilep]){
+              taus_el_ind->at(itau) = ilep;
+              break;
+            } 
+          } // Loop over electrons
+        }
+        if(abs(pfc.pdgId())==13){
+          for (unsigned int ilep(0); ilep < muons->size(); ilep++) {
+            if(&pfc == mu_pfmatch[ilep]){
+              taus_mu_ind->at(itau) = ilep;
+              break;
+            } 
+          } // Loop over electrons
+        }
       } // If tau has one constituent
     } // Loop over taus
 
@@ -208,34 +293,34 @@ class miniAdHocNTupler : public NTupler {
       std::vector<PileupSummaryInfo>::const_iterator PVI;
 
       for(PVI = PupInfo->begin(); PVI != PupInfo->end(); ++PVI) {
-	// cout << " PU Information: bunch crossing " << PVI->getBunchCrossing() 
-	//      << ", NumInteractions " << PVI->getPU_NumInteractions() 
-	//      << ", TrueNumInteractions " << PVI->getTrueNumInteractions() 
-	//      <<", evend ID   "<< iEvent.id().event() << std::endl;
-	(*PU_NumInteractions_).push_back(PVI->getPU_NumInteractions());
-	(*PU_bunchCrossing_).push_back(PVI->getBunchCrossing());
-	(*PU_TrueNumInteractions_).push_back(PVI->getTrueNumInteractions());
-	(*PU_zpositions_).push_back(PVI->getPU_zpositions());
-	(*PU_sumpT_lowpT_).push_back(PVI->getPU_sumpT_lowpT());
-	(*PU_sumpT_highpT_).push_back(PVI->getPU_sumpT_highpT());
-	(*PU_ntrks_lowpT_).push_back(PVI->getPU_ntrks_lowpT());
-	(*PU_ntrks_highpT_).push_back(PVI->getPU_ntrks_highpT());
+        // cout << " PU Information: bunch crossing " << PVI->getBunchCrossing() 
+        //      << ", NumInteractions " << PVI->getPU_NumInteractions() 
+        //      << ", TrueNumInteractions " << PVI->getTrueNumInteractions() 
+        //      <<", evend ID   "<< iEvent.id().event() << std::endl;
+        (*PU_NumInteractions_).push_back(PVI->getPU_NumInteractions());
+        (*PU_bunchCrossing_).push_back(PVI->getBunchCrossing());
+        (*PU_TrueNumInteractions_).push_back(PVI->getTrueNumInteractions());
+        (*PU_zpositions_).push_back(PVI->getPU_zpositions());
+        (*PU_sumpT_lowpT_).push_back(PVI->getPU_sumpT_lowpT());
+        (*PU_sumpT_highpT_).push_back(PVI->getPU_sumpT_highpT());
+        (*PU_ntrks_lowpT_).push_back(PVI->getPU_ntrks_lowpT());
+        (*PU_ntrks_highpT_).push_back(PVI->getPU_ntrks_highpT());
       }
 
       edm::Handle<LHEEventProduct> product;
       if(iEvent.getByLabel("externalLHEProducer", product)){
-	iEvent.getByLabel("externalLHEProducer", product);
-	const lhef::HEPEUP hepeup_ = product->hepeup();
-	const std::vector<lhef::HEPEUP::FiveVector> pup_ = hepeup_.PUP;
-     
-	size_t iMax = hepeup_.NUP;
-	for(size_t i = 2; i < iMax; ++i) {
-	  if( hepeup_.ISTUP[i] != 1 ) continue;
-	  int idabs = abs( hepeup_.IDUP[i] );
-	  if( idabs != 21 && (idabs<1 || idabs>6) ) continue;
-	  double ptPart = sqrt( pow(hepeup_.PUP[i][0],2) + pow(hepeup_.PUP[i][1],2) );
-	  htEvent += ptPart;
-	} 
+        iEvent.getByLabel("externalLHEProducer", product);
+        const lhef::HEPEUP hepeup_ = product->hepeup();
+        const std::vector<lhef::HEPEUP::FiveVector> pup_ = hepeup_.PUP;
+
+        size_t iMax = hepeup_.NUP;
+        for(size_t i = 2; i < iMax; ++i) {
+          if( hepeup_.ISTUP[i] != 1 ) continue;
+          int idabs = abs( hepeup_.IDUP[i] );
+          if( idabs != 21 && (idabs<1 || idabs>6) ) continue;
+          double ptPart = sqrt( pow(hepeup_.PUP[i][0],2) + pow(hepeup_.PUP[i][1],2) );
+          htEvent += ptPart;
+        } 
       }
       *genHT_ = htEvent;
     } // if it's not real data
@@ -428,6 +513,9 @@ class miniAdHocNTupler : public NTupler {
     (*els_isPF).clear();
     (*mus_isPF).clear();
 
+    (*els_miniso).clear();
+    (*mus_miniso).clear();
+
     (*jets_AK4_maxpt_id).clear();
     (*jets_AK4_mu_ind).clear();
     (*jets_AK4_el_ind).clear();
@@ -472,19 +560,19 @@ class miniAdHocNTupler : public NTupler {
     if (useTFileService_){
       edm::Service<TFileService> fs;      
       if (ownTheTree_){
-	ownTheTree_=true;
-	tree_=fs->make<TTree>(treeName_.c_str(),"miniStringBasedNTupler tree");
+        ownTheTree_=true;
+        tree_=fs->make<TTree>(treeName_.c_str(),"miniStringBasedNTupler tree");
       }else{
-	TObject * object = fs->file().Get(treeName_.c_str());
-	if (!object){
-	  ownTheTree_=true;
-	  tree_=fs->make<TTree>(treeName_.c_str(),"miniStringBasedNTupler tree");
-	}
-	tree_=dynamic_cast<TTree*>(object);
-	if (!tree_){
-	  ownTheTree_=true;
-	  tree_=fs->make<TTree>(treeName_.c_str(),"miniStringBasedNTupler tree");
-	}
+        TObject * object = fs->file().Get(treeName_.c_str());
+        if (!object){
+          ownTheTree_=true;
+          tree_=fs->make<TTree>(treeName_.c_str(),"miniStringBasedNTupler tree");
+        }
+        tree_=dynamic_cast<TTree*>(object);
+        if (!tree_){
+          ownTheTree_=true;
+          tree_=fs->make<TTree>(treeName_.c_str(),"miniStringBasedNTupler tree");
+        }
       }
       
       //register the leaves by hand
@@ -528,6 +616,9 @@ class miniAdHocNTupler : public NTupler {
 
       tree_->Branch("els_isPF",&els_isPF);
       tree_->Branch("mus_isPF",&mus_isPF);
+
+      tree_->Branch("els_miniso",&els_miniso);
+      tree_->Branch("mus_miniso",&mus_miniso);
 
       tree_->Branch("jets_AK4_maxpt_id", &jets_AK4_maxpt_id);
       tree_->Branch("jets_AK4_mu_ind",	&jets_AK4_mu_ind);  
@@ -603,12 +694,12 @@ class miniAdHocNTupler : public NTupler {
 
     if (useTFileService_){
       if (adHocPSet.exists("treeName")){
-	treeName_=adHocPSet.getParameter<std::string>("treeName");
-	ownTheTree_=true;
+        treeName_=adHocPSet.getParameter<std::string>("treeName");
+        ownTheTree_=true;
       }
       else{
-	treeName_=iConfig.getParameter<std::string>("treeName");
-	ownTheTree_=false;
+        treeName_=iConfig.getParameter<std::string>("treeName");
+        ownTheTree_=false;
       }
     }
     
@@ -653,6 +744,9 @@ class miniAdHocNTupler : public NTupler {
 
     els_isPF = new std::vector<bool>;
     mus_isPF = new std::vector<bool>;
+
+    els_miniso = new std::vector<float>;
+    mus_miniso = new std::vector<float>;
 
     jets_AK4_maxpt_id = new std::vector<int>;
     jets_AK4_mu_ind = new std::vector<int>;
@@ -746,6 +840,9 @@ class miniAdHocNTupler : public NTupler {
 
     delete els_isPF;
     delete mus_isPF;
+
+    delete els_miniso;
+    delete mus_miniso;
 
     delete jets_AK4_maxpt_id;
     delete jets_AK4_mu_ind;
@@ -844,6 +941,9 @@ class miniAdHocNTupler : public NTupler {
 
   std::vector<bool> * els_isPF;
   std::vector<bool> * mus_isPF;
+
+  std::vector<float> * els_miniso;
+  std::vector<float> * mus_miniso;
 
   std::vector<int> * jets_AK4_maxpt_id;
   std::vector<int> * jets_AK4_mu_ind;
