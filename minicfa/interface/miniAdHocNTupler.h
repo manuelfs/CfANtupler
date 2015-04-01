@@ -4,6 +4,7 @@
 #include <cmath>
 
 #include "FWCore/Framework/interface/ESHandle.h"
+#include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/Run.h"
 #include "FWCore/Utilities/interface/Exception.h"
 #include "FWCore/Common/interface/TriggerNames.h"
@@ -36,11 +37,12 @@
 #include <fastjet/ClusterSequence.hh>
 #include <fastjet/GhostedAreaSpec.hh>
 
+
 using namespace std;
 using namespace fastjet;
 
 class miniAdHocNTupler : public NTupler {
-  public:
+ public:
 
   double getPFIsolation(edm::Handle<pat::PackedCandidateCollection> pfcands,
                         const reco::Candidate* ptcl,  
@@ -90,7 +92,7 @@ class miniAdHocNTupler : public NTupler {
           if (abs(pfc.pdgId())==22) {
             if(dr < deadcone_ph) continue;
             iso_ph += wpf*pfc.pt();
-          /////////// NEUTRAL HADRONS ////////////
+	    /////////// NEUTRAL HADRONS ////////////
           } else if (abs(pfc.pdgId())==130) {
             if(dr < deadcone_nh) continue;
             iso_nh += wpf*pfc.pt();
@@ -125,6 +127,7 @@ class miniAdHocNTupler : public NTupler {
   }
 
   void fill(edm::Event& iEvent){
+
 
     nevents++;
 
@@ -197,7 +200,7 @@ class miniAdHocNTupler : public NTupler {
     for (unsigned int ilep(0); ilep < electrons->size(); ilep++) {
       const pat::Electron &lep = (*electrons)[ilep];
       els_isPF->push_back(deltaR(lep, *el_pfmatch[ilep]) < 0.1 && abs(lep.p()-el_pfmatch[ilep]->p())/lep.p()<0.05 &&
-                  lep.pdgId() == el_pfmatch[ilep]->pdgId());
+			  lep.pdgId() == el_pfmatch[ilep]->pdgId());
       els_jet_ind->push_back(-1);
 
       els_miniso->push_back(getPFIsolation(pfcands, dynamic_cast<const reco::Candidate *>(&lep), 0.05, 0.2, 10., false, false));
@@ -484,6 +487,57 @@ class miniAdHocNTupler : public NTupler {
     *pfType1mets_uncert_JetResDown_dpy_ = met.shiftedPy(pat::MET::JetResDown)-met.py();
     *pfType1mets_uncert_JetResDown_sumEt_ = met.shiftedSumEt(pat::MET::JetResDown)-met.sumEt();
 
+    *raw_met_et_ = met.shiftedPt(pat::MET::METUncertainty::NoShift, pat::MET::METUncertaintyLevel::Raw);
+    *raw_met_phi_ = met.shiftedPhi(pat::MET::METUncertainty::NoShift, pat::MET::METUncertaintyLevel::Raw);
+    *raw_met_sumEt_ = met.shiftedSumEt(pat::MET::METUncertainty::NoShift, pat::MET::METUncertaintyLevel::Raw);
+
+    // electron ID
+    /* edm::Handle< vector<int> > els_passVetoId; */
+    /* iEvent.getByLabel("electronProducer","els_passVetoId", els_passVetoId); */
+    /* edm::Handle< vector<int> > els_passLooseId; */
+    /* iEvent.getByLabel("electronProducer","els_passLooseId", els_passLooseId); */
+    /* edm::Handle< vector<int> > els_passMediumId; */
+    /* iEvent.getByLabel("electronProducer","els_passMediumId", els_passMediumId); */
+    /* edm::Handle< vector<int> > els_passTightId; */
+    /* iEvent.getByLabel("electronProducer","els_passTightId", els_passTightId); */
+ 
+    /* for (unsigned int ilep(0); ilep < els_passVetoId->size(); ilep++) { */
+    /*   els_passPhys14VetoId_->push_back( els_passVetoId->at(ilep) ); */
+    /*   els_passPhys14LooseId_->push_back( els_passLooseId->at(ilep) ); */
+    /*   els_passPhys14MediumId_->push_back( els_passMediumId->at(ilep) ); */
+    /*   els_passPhys14TightId_->push_back( els_passTightId->at(ilep) ); */
+    /* } */
+
+    // photons
+    edm::Handle< vector<float> > ph_sieie;
+    iEvent.getByLabel("photonProducer","photonsfull5x5sigmaIEtaIEta", ph_sieie);
+    edm::Handle< vector<bool> > ph_elVeto;
+    iEvent.getByLabel("photonProducer","photonspasselveto", ph_elVeto);
+    for (unsigned int iphoton(0); iphoton < ph_sieie->size(); iphoton++) {
+      photons_full5x5sigmaIEtaIEta_->push_back(ph_sieie->at(iphoton));
+      photons_pass_el_veto_->push_back(ph_elVeto->at(iphoton));
+    } 
+
+    // energy density
+    edm::Handle<double> rhoH_all;
+    iEvent.getByLabel( "fixedGridRhoFastjetAll", rhoH_all );
+    if(rhoH_all.isValid()){
+      *fixedGridRhoFastjetAll_ = *rhoH_all;
+    }
+
+    // JEC
+    edm::Handle< vector<float> > corL1Fast;
+    iEvent.getByLabel("jecCorL1Fast","JEC", corL1Fast);
+    edm::Handle< vector<float> > corL2L3;
+    iEvent.getByLabel("jecCorL2L3","JEC", corL2L3);
+    edm::Handle< vector<float> > corL1FastL2L3;
+    iEvent.getByLabel("jecCorL1FastL2L3","JEC", corL1FastL2L3);
+
+    for (size_t it=0; it<corL1Fast->size(); ++it ) {
+      jets_AK4_corL1Fast_->push_back( corL1Fast->at(it));
+      jets_AK4_corL2L3_->push_back( corL2L3->at(it));
+      jets_AK4_corL1FastL2L3_->push_back( corL1FastL2L3->at(it));
+    }
    
 
     //fill the tree    
@@ -519,10 +573,19 @@ class miniAdHocNTupler : public NTupler {
     (*jets_AK4_maxpt_id).clear();
     (*jets_AK4_mu_ind).clear();
     (*jets_AK4_el_ind).clear();
+    (*jets_AK4_corL1Fast_).clear();
+    (*jets_AK4_corL2L3_).clear();
+    (*jets_AK4_corL1FastL2L3_).clear();
+    
     (*taus_el_ind).clear();
     (*taus_mu_ind).clear();
     (*els_jet_ind).clear();
     (*mus_jet_ind).clear();
+
+    /* (*els_passPhys14VetoId_).clear(); */
+    /* (*els_passPhys14LooseId_).clear(); */
+    /* (*els_passPhys14MediumId_).clear(); */
+    /* (*els_passPhys14TightId_).clear(); */
 
     (*isotk_pt_).clear();
     (*isotk_phi_).clear();
@@ -551,6 +614,8 @@ class miniAdHocNTupler : public NTupler {
     (*fjets30_energy).clear();
     (*fjets30_m).clear();
 
+    (*photons_full5x5sigmaIEtaIEta_).clear();
+    (*photons_pass_el_veto_).clear();
 
 
   }
@@ -614,19 +679,30 @@ class miniAdHocNTupler : public NTupler {
       tree_->Branch("trkPOG_toomanystripclus53Xfilter_decision",	  trkPOG_toomanystripclus53Xfilter_decision_	 ,"trkPOG_toomanystripclus53Xfilter_decision/I");	  
       tree_->Branch("hcallaserfilter_decision",    hcallaserfilter_decision_,"hcallaserfilter_decision/I");   
 
-      tree_->Branch("els_isPF",&els_isPF);
       tree_->Branch("mus_isPF",&mus_isPF);
-
-      tree_->Branch("els_miniso",&els_miniso);
       tree_->Branch("mus_miniso",&mus_miniso);
+      tree_->Branch("mus_jet_ind",	&mus_jet_ind);
+
+
+      
 
       tree_->Branch("jets_AK4_maxpt_id", &jets_AK4_maxpt_id);
       tree_->Branch("jets_AK4_mu_ind",	&jets_AK4_mu_ind);  
-      tree_->Branch("jets_AK4_el_ind",	&jets_AK4_el_ind);  
-      tree_->Branch("taus_el_ind",	&taus_el_ind);      
-      tree_->Branch("taus_mu_ind",	&taus_mu_ind);      
+      tree_->Branch("jets_AK4_el_ind",	&jets_AK4_el_ind);
+      tree_->Branch("jets_AK4_corL1Fast", &jets_AK4_corL1Fast_);
+      tree_->Branch("jets_AK4_corL2L3", &jets_AK4_corL2L3_);
+      tree_->Branch("jets_AK4_corL1FastL2L3", &jets_AK4_corL1FastL2L3_);
+      
+
+      tree_->Branch("els_isPF",&els_isPF);
+      tree_->Branch("els_miniso",&els_miniso);
       tree_->Branch("els_jet_ind",	&els_jet_ind);      
-      tree_->Branch("mus_jet_ind",	&mus_jet_ind);      
+      /* tree_->Branch("els_passPhys14VetoId",	&els_passPhys14VetoId_);       */
+      /* tree_->Branch("els_passPhys14LooseId",	&els_passPhys14LooseId_);       */
+      /* tree_->Branch("els_passPhys14MediumId",	&els_passPhys14MediumId_);       */
+      /* tree_->Branch("els_passPhys14TightId",	&els_passPhys14TightId_);      */ 
+
+      
       tree_->Branch("isotk_pt",&isotk_pt_);
       tree_->Branch("isotk_phi",&isotk_phi_);
       tree_->Branch("isotk_eta",&isotk_eta_);
@@ -647,6 +723,8 @@ class miniAdHocNTupler : public NTupler {
       tree_->Branch("taus_puCorrPtSum", &taus_puCorrPtSum_);
       tree_->Branch("taus_againstMuonLoose3", &taus_againstMuonLoose3_);
       tree_->Branch("taus_againstElectronLooseMVA5", &taus_againstElectronLooseMVA5_);
+      tree_->Branch("taus_el_ind",	&taus_el_ind);      
+      tree_->Branch("taus_mu_ind",	&taus_mu_ind); 
 
       tree_->Branch("fjets30_pt", &fjets30_pt);  
       tree_->Branch("fjets30_eta", &fjets30_eta);
@@ -666,6 +744,15 @@ class miniAdHocNTupler : public NTupler {
       tree_->Branch("pfType1mets_uncert_JetResDown_dpx", pfType1mets_uncert_JetResDown_dpx_, "pfType1mets_uncert_JetResDown_dpx/F");
       tree_->Branch("pfType1mets_uncert_JetResDown_dpy", pfType1mets_uncert_JetResDown_dpy_, "pfType1mets_uncert_JetResDown_dpy/F");
       tree_->Branch("pfType1mets_uncert_JetResDown_sumEt", pfType1mets_uncert_JetResDown_sumEt_, "pfType1mets_uncert_JetResDown_sumEt/F");
+      tree_->Branch("raw_met_et",raw_met_et_, "raw_met_et/F");
+      tree_->Branch("raw_met_phi",raw_met_phi_, "raw_met_phi/F");
+      tree_->Branch("raw_met_sumEt",raw_met_sumEt_, "raw_met_sumEt/F");
+
+
+      tree_->Branch("photons_full5x5sigmaIEtaIEta", photons_full5x5sigmaIEtaIEta_);
+      tree_->Branch("photons_pass_el_veto_", photons_pass_el_veto_);
+  
+      tree_->Branch("fixedGridRhoFastjetAll", fixedGridRhoFastjetAll_, "fixedGridRhoFastjetAll/F");
 
 
     }
@@ -751,10 +838,19 @@ class miniAdHocNTupler : public NTupler {
     jets_AK4_maxpt_id = new std::vector<int>;
     jets_AK4_mu_ind = new std::vector<int>;
     jets_AK4_el_ind = new std::vector<int>;
+    jets_AK4_corL1Fast_ = new std::vector<float>;
+    jets_AK4_corL2L3_ = new std::vector<float>;
+    jets_AK4_corL1FastL2L3_ = new std::vector<float>;
+  
     taus_el_ind = new std::vector<int>;
     taus_mu_ind = new std::vector<int>;
     els_jet_ind = new std::vector<int>;
     mus_jet_ind = new std::vector<int>;
+
+    /* els_passPhys14VetoId_ = new std::vector<int>; */
+    /* els_passPhys14LooseId_ = new std::vector<int>; */
+    /* els_passPhys14MediumId_ = new std::vector<int>; */
+    /* els_passPhys14TightId_ = new std::vector<int>; */
 
     //isolated tracks (charged pf candidates)                                                                                                               
     isotk_pt_ = new std::vector<float>;
@@ -796,6 +892,14 @@ class miniAdHocNTupler : public NTupler {
     pfType1mets_uncert_JetResDown_dpx_ =     new float;
     pfType1mets_uncert_JetResDown_dpy_ =    new float;
     pfType1mets_uncert_JetResDown_sumEt_ =    new float;
+    raw_met_et_ = new float;
+    raw_met_phi_ = new float;
+    raw_met_sumEt_ = new float;
+
+    photons_full5x5sigmaIEtaIEta_ =     new std::vector<float>;
+    photons_pass_el_veto_ =     new std::vector<bool>;
+  
+    fixedGridRhoFastjetAll_ = new float;
  
   }
 
@@ -847,10 +951,19 @@ class miniAdHocNTupler : public NTupler {
     delete jets_AK4_maxpt_id;
     delete jets_AK4_mu_ind;
     delete jets_AK4_el_ind;
+    delete jets_AK4_corL1Fast_;
+    delete jets_AK4_corL2L3_;
+    delete jets_AK4_corL1FastL2L3_;
+  
     delete taus_el_ind;
     delete taus_mu_ind;
     delete els_jet_ind;
     delete mus_jet_ind;
+
+    /* delete els_passPhys14VetoId_; */
+    /* delete els_passPhys14LooseId_; */
+    /* delete els_passPhys14MediumId_; */
+    /* delete els_passPhys14TightId_; */
 
     delete isotk_pt_;
     delete isotk_phi_;
@@ -891,6 +1004,17 @@ class miniAdHocNTupler : public NTupler {
     delete pfType1mets_uncert_JetResDown_dpx_;
     delete pfType1mets_uncert_JetResDown_dpy_;
     delete pfType1mets_uncert_JetResDown_sumEt_;
+    delete raw_met_et_;
+    delete raw_met_phi_;
+    delete raw_met_sumEt_;
+
+    delete photons_full5x5sigmaIEtaIEta_;
+    delete photons_pass_el_veto_;
+
+    delete fixedGridRhoFastjetAll_;
+
+
+    // delete clusterTools_;
 
   }
 
@@ -948,12 +1072,20 @@ class miniAdHocNTupler : public NTupler {
   std::vector<int> * jets_AK4_maxpt_id;
   std::vector<int> * jets_AK4_mu_ind;
   std::vector<int> * jets_AK4_el_ind;
+  std::vector<float> * jets_AK4_corL1Fast_;
+  std::vector<float> * jets_AK4_corL2L3_;
+  std::vector<float> * jets_AK4_corL1FastL2L3_;
 
   std::vector<int> * taus_el_ind;
   std::vector<int> * taus_mu_ind;
   std::vector<int> * els_jet_ind;
   std::vector<int> * mus_jet_ind;
 
+  /* std::vector<int> * els_passPhys14VetoId_; */
+  /* std::vector<int> * els_passPhys14LooseId_; */
+  /* std::vector<int> * els_passPhys14MediumId_; */
+  /* std::vector<int> * els_passPhys14TightId_; */
+  
   std::vector<float> * isotk_pt_;
   std::vector<float> * isotk_phi_;
   std::vector<float> * isotk_eta_;
@@ -993,5 +1125,14 @@ class miniAdHocNTupler : public NTupler {
   float *pfType1mets_uncert_JetResDown_dpx_;
   float *pfType1mets_uncert_JetResDown_dpy_;
   float *pfType1mets_uncert_JetResDown_sumEt_;
+
+  float *raw_met_et_;
+  float *raw_met_phi_;
+  float *raw_met_sumEt_;
+
+  std::vector<float> *photons_full5x5sigmaIEtaIEta_;
+  std::vector<bool> *photons_pass_el_veto_;
+
+  float *fixedGridRhoFastjetAll_; 
 
 };

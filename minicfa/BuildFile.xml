@@ -5,13 +5,20 @@
 <use   name="CommonTools/UtilAlgos"/>
 <use   name="PhysicsTools/UtilAlgos"/>
 <use   name="PhysicsTools/HepMCCandAlgos"/>
+<use   name="PhysicsTools/SelectorUtils"/>
 <use   name="DataFormats/PatCandidates"/>
 <use   name="DataFormats/L1Trigger"/>
 <use   name="DataFormats/JetReco"/>
+<use   name="DataFormats/Common"/>
 <use   name="fastjet"/>
 <use   name="fastjet-contrib"/>
 <use   name="root"/>
+<use name="clhep"/>
 <use   name="RecoEgamma/EgammaTools"/>
+<use   name="JetMETCorrections/Objects"/>
+<use   name="CondFormats/JetMETObjects"/>
+<use   name="RecoEcal/EgammaCoreTools"/>
+<use   name="EgammaAnalysis/ElectronTools"/>
 <export>
   <lib   name="1"/>
 </export>

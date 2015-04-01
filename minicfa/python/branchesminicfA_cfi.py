@@ -315,10 +315,12 @@ cfA = cms.EDFilter("minicfa",
                         'Type6EtFraction:Type6EtFraction',
                         'Type7EtFraction:Type7EtFraction',
                         'sumEt:sumEt', 
-                        'unCPhi:uncorrectedPhi', 
-                        'unCPt:uncorrectedPt',
+                        ## 'unCPhi:uncorrectedPhi', 
+                        ## 'unCPt:uncorrectedPt',
                         'gen_et:genMET.pt',
-                        'gen_phi:genMET.phi'
+                        'gen_phi:genMET.phi',
+                        'Sig:mEtSig'
+                        ## 'Significance:significance'
                         )
                 ),
                 Class = cms.string('pat::MET')
@@ -329,9 +331,15 @@ cfA = cms.EDFilter("minicfa",
                 leaves = cms.PSet(
                     basicKinematicLeaves,
                    # genMatchingLeaves,
-                    vars= cms.vstring('passElectronVeto:passElectronVeto',
+                    vars= cms.vstring('isConv:hasConversionTracks',
+                                      'pf_ch_iso:chargedHadronIso',
+                                      'pf_nh_iso:neutralHadronIso',
+                                      'pf_ph_iso:photonIso',
+                                      #X'full5x5_sigmaIetaIeta:full5x5_sigmaIetaIeta',
+                                      'passElectronVeto:passElectronVeto',
                                       'hadOverEM:hadronicOverEm',
                                       'hadTowOverEM:hadTowOverEm',
+                                      'hasPixelSeed:hasPixelSeed',
                                       'scEnergy:superCluster.energy',
                                       'scRawEnergy:superCluster.rawEnergy',
                                       'scEta:superCluster.position.eta',
@@ -359,7 +367,7 @@ cfA = cms.EDFilter("minicfa",
                                       'isEBPho:isEB',#changed from isEBPho
                                       'isEEPho:isEE',#changed from isEEPho
                                       'isLoosePhoton:photonID("PhotonCutBasedIDLoose")',
-                                      'isTightPhoton:photonID("PhotonCutBasedIDLoose")',
+                                      'isTightPhoton:photonID("PhotonCutBasedIDTight")',
                                       'maxEnergyXtal:maxEnergyXtal',
                                       'e1x5:e1x5',
                                       'e2x5:e2x5',
@@ -367,7 +375,6 @@ cfA = cms.EDFilter("minicfa",
                                       'e5x5:e5x5',
                                       'sigmaEtaEta:sigmaEtaEta',
                                       'sigmaIetaIeta:sigmaIetaIeta',
-                                      # 'full5x5_sigmaIetaIeta:full5x5_sigmaIetaIeta',
                                       'r9:r9'
                     )
                 ),
@@ -594,9 +601,9 @@ cfA = cms.EDFilter("minicfa",
                         'etaetaMoment:etaetaMoment',
                         'etaphiMoment:etaphiMoment',
                         'phiphiMoment:phiphiMoment',
-                        'area:towersArea',
-                        'corrFactorRaw:jecFactor(0)',
-                        'rawPt:jecFactor(0)*pt',
+                        'area:jetArea',
+                        'corrFactorRaw:jecFactor("Uncorrected")',
+                        'rawPt:jecFactor("Uncorrected")*pt',
                         'mass:mass'
                     )
         	),
