@@ -54,7 +54,7 @@ private:
   edm::EDGetTokenT<EcalRecHitCollection> ecalRecHitsInputTag_EE_Token_;
   edm::EDGetTokenT<EcalRecHitCollection> ecalRecHitsInputTag_EB_Token_;
 
-  EcalClusterLazyTools* clusterTools_;
+  // noZS::EcalClusterLazyTools* clusterTools_;
 
 };
 

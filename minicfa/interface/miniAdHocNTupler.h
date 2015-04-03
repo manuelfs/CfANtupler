@@ -432,27 +432,27 @@ class miniAdHocNTupler : public NTupler {
 
 
     //isolated pf candidates as found by TrackIsolationMaker                                                                               
-    edm::Handle< vector<float> > pfcand_dzpv;
-    iEvent.getByLabel("trackIsolationMaker","pfcandsdzpv", pfcand_dzpv);
-    edm::Handle< vector<float> > pfcand_pt;
-    iEvent.getByLabel("trackIsolationMaker","pfcandspt", pfcand_pt);
-    edm::Handle< vector<float> > pfcand_eta;
-    iEvent.getByLabel("trackIsolationMaker","pfcandseta", pfcand_eta);
-    edm::Handle< vector<float> > pfcand_phi;
-    iEvent.getByLabel("trackIsolationMaker","pfcandsphi", pfcand_phi);
-    edm::Handle< vector<float> > pfcand_iso;
-    iEvent.getByLabel("trackIsolationMaker","pfcandstrkiso", pfcand_iso);
-    edm::Handle< vector<int> > pfcand_charge;
-    iEvent.getByLabel("trackIsolationMaker","pfcandschg", pfcand_charge);
+    /* edm::Handle< vector<float> > pfcand_dzpv; */
+    /* iEvent.getByLabel("trackIsolationMaker","pfcandsdzpv", pfcand_dzpv); */
+    /* edm::Handle< vector<float> > pfcand_pt; */
+    /* iEvent.getByLabel("trackIsolationMaker","pfcandspt", pfcand_pt); */
+    /* edm::Handle< vector<float> > pfcand_eta; */
+    /* iEvent.getByLabel("trackIsolationMaker","pfcandseta", pfcand_eta); */
+    /* edm::Handle< vector<float> > pfcand_phi; */
+    /* iEvent.getByLabel("trackIsolationMaker","pfcandsphi", pfcand_phi); */
+    /* edm::Handle< vector<float> > pfcand_iso; */
+    /* iEvent.getByLabel("trackIsolationMaker","pfcandstrkiso", pfcand_iso); */
+    /* edm::Handle< vector<int> > pfcand_charge; */
+    /* iEvent.getByLabel("trackIsolationMaker","pfcandschg", pfcand_charge); */
 
-    for (size_t it=0; it<pfcand_pt->size(); ++it ) {
-      isotk_pt_->push_back( pfcand_pt->at(it));
-      isotk_phi_ -> push_back( pfcand_phi->at(it));
-      isotk_eta_ -> push_back( pfcand_eta->at(it));
-      isotk_iso_ -> push_back( pfcand_iso->at(it));
-      isotk_dzpv_ -> push_back( pfcand_dzpv->at(it));
-      isotk_charge_ -> push_back( pfcand_charge->at(it));
-    }
+    /* for (size_t it=0; it<pfcand_pt->size(); ++it ) { */
+    /*   isotk_pt_->push_back( pfcand_pt->at(it)); */
+    /*   isotk_phi_ -> push_back( pfcand_phi->at(it)); */
+    /*   isotk_eta_ -> push_back( pfcand_eta->at(it)); */
+    /*   isotk_iso_ -> push_back( pfcand_iso->at(it)); */
+    /*   isotk_dzpv_ -> push_back( pfcand_dzpv->at(it)); */
+    /*   isotk_charge_ -> push_back( pfcand_charge->at(it)); */
+    /* } */
 
     // tauID -- see https://indico.cern.ch/event/359233/contribution/4/material/slides/0.pdf
     for (unsigned int itau(0); itau < taus->size(); itau++) {
@@ -587,12 +587,12 @@ class miniAdHocNTupler : public NTupler {
     /* (*els_passPhys14MediumId_).clear(); */
     /* (*els_passPhys14TightId_).clear(); */
 
-    (*isotk_pt_).clear();
-    (*isotk_phi_).clear();
-    (*isotk_eta_).clear();
-    (*isotk_iso_).clear();
-    (*isotk_dzpv_).clear();
-    (*isotk_charge_).clear();
+    /* (*isotk_pt_).clear(); */
+    /* (*isotk_phi_).clear(); */
+    /* (*isotk_eta_).clear(); */
+    /* (*isotk_iso_).clear(); */
+    /* (*isotk_dzpv_).clear(); */
+    /* (*isotk_charge_).clear(); */
     
     (*taus_CombinedIsolationDeltaBetaCorrRaw3Hits_).clear();
     (*taus_byLooseCombinedIsolationDeltaBetaCorr3Hits_).clear();
@@ -703,12 +703,12 @@ class miniAdHocNTupler : public NTupler {
       /* tree_->Branch("els_passPhys14TightId",	&els_passPhys14TightId_);      */ 
 
       
-      tree_->Branch("isotk_pt",&isotk_pt_);
-      tree_->Branch("isotk_phi",&isotk_phi_);
-      tree_->Branch("isotk_eta",&isotk_eta_);
-      tree_->Branch("isotk_iso",&isotk_iso_);
-      tree_->Branch("isotk_dzpv",&isotk_dzpv_);
-      tree_->Branch("isotk_charge",&isotk_charge_);
+      /* tree_->Branch("isotk_pt",&isotk_pt_); */
+      /* tree_->Branch("isotk_phi",&isotk_phi_); */
+      /* tree_->Branch("isotk_eta",&isotk_eta_); */
+      /* tree_->Branch("isotk_iso",&isotk_iso_); */
+      /* tree_->Branch("isotk_dzpv",&isotk_dzpv_); */
+      /* tree_->Branch("isotk_charge",&isotk_charge_); */
 
       tree_->Branch("taus_n_pfcands",&taus_n_pfcands_);
       tree_->Branch("taus_decayMode",&taus_decayMode_);
@@ -750,7 +750,7 @@ class miniAdHocNTupler : public NTupler {
 
 
       tree_->Branch("photons_full5x5sigmaIEtaIEta", photons_full5x5sigmaIEtaIEta_);
-      tree_->Branch("photons_pass_el_veto_", photons_pass_el_veto_);
+      tree_->Branch("photons_pass_el_veto", photons_pass_el_veto_);
   
       tree_->Branch("fixedGridRhoFastjetAll", fixedGridRhoFastjetAll_, "fixedGridRhoFastjetAll/F");
 
@@ -853,12 +853,12 @@ class miniAdHocNTupler : public NTupler {
     /* els_passPhys14TightId_ = new std::vector<int>; */
 
     //isolated tracks (charged pf candidates)                                                                                                               
-    isotk_pt_ = new std::vector<float>;
-    isotk_phi_ = new std::vector<float>;
-    isotk_eta_ = new std::vector<float>;
-    isotk_iso_ = new std::vector<float>;
-    isotk_dzpv_ = new std::vector<float>;
-    isotk_charge_ = new std::vector<int>;
+    /* isotk_pt_ = new std::vector<float>; */
+    /* isotk_phi_ = new std::vector<float>; */
+    /* isotk_eta_ = new std::vector<float>; */
+    /* isotk_iso_ = new std::vector<float>; */
+    /* isotk_dzpv_ = new std::vector<float>; */
+    /* isotk_charge_ = new std::vector<int>; */
 
     taus_CombinedIsolationDeltaBetaCorrRaw3Hits_ = new std::vector<float>;
     taus_byLooseCombinedIsolationDeltaBetaCorr3Hits_ = new std::vector<bool>;
@@ -965,12 +965,12 @@ class miniAdHocNTupler : public NTupler {
     /* delete els_passPhys14MediumId_; */
     /* delete els_passPhys14TightId_; */
 
-    delete isotk_pt_;
-    delete isotk_phi_;
-    delete isotk_eta_;
-    delete isotk_iso_;
-    delete isotk_dzpv_;
-    delete isotk_charge_;
+    /* delete isotk_pt_; */
+    /* delete isotk_phi_; */
+    /* delete isotk_eta_; */
+    /* delete isotk_iso_; */
+    /* delete isotk_dzpv_; */
+    /* delete isotk_charge_; */
 
     delete taus_CombinedIsolationDeltaBetaCorrRaw3Hits_;
     delete taus_byLooseCombinedIsolationDeltaBetaCorr3Hits_;
@@ -1086,12 +1086,12 @@ class miniAdHocNTupler : public NTupler {
   /* std::vector<int> * els_passPhys14MediumId_; */
   /* std::vector<int> * els_passPhys14TightId_; */
   
-  std::vector<float> * isotk_pt_;
-  std::vector<float> * isotk_phi_;
-  std::vector<float> * isotk_eta_;
-  std::vector<float> * isotk_iso_;
-  std::vector<float> * isotk_dzpv_;
-  std::vector<int> *   isotk_charge_;
+  /* std::vector<float> * isotk_pt_; */
+  /* std::vector<float> * isotk_phi_; */
+  /* std::vector<float> * isotk_eta_; */
+  /* std::vector<float> * isotk_iso_; */
+  /* std::vector<float> * isotk_dzpv_; */
+  /* std::vector<int> *   isotk_charge_; */
 
   std::vector<float> *  taus_CombinedIsolationDeltaBetaCorrRaw3Hits_;
   std::vector<bool> *  taus_byLooseCombinedIsolationDeltaBetaCorr3Hits_;

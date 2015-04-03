@@ -9,6 +9,11 @@ process = cms.Process("MinicfA")
 process.load("FWCore.MessageService.MessageLogger_cfi")
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 
+## process.SimpleMemoryCheck = cms.Service("SimpleMemoryCheck")
+## process.Timing = cms.Service("Timing", summaryOnly = cms.untracked.bool(True) )
+## process.CPU = cms.Service("CPU")
+## process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(True) )
+
 process.source = cms.Source("PoolSource",
                             fileNames = cms.untracked.vstring(
                             #'/store/cmst3/user/gpetrucc/miniAOD/v1/TT_Tune4C_13TeV-pythia8-tauola_PU_S14_PAT.root'
@@ -17,7 +22,9 @@ process.source = cms.Source("PoolSource",
                             # '/store/mc/Spring14miniaod/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/MINIAODSIM/PU20bx25_POSTLS170_V5-v2/00000/004C6DA7-FB03-E411-96BD-0025905A497A.root'
                             #'file:/home/users/manuelf/cmssw/cfa/CMSSW_7_2_2_patch1/src/CfANtupler/minicfa/python/TT_Tune4C_13TeV-pythia8-tauola_MINIAODSIM.root'
                             #'/store/mc/Phys14DR/GJets_HT-600toInf_Tune4C_13TeV-madgraph-tauola/MINIAODSIM/PU20bx25_PHYS14_25_V1-v1/00000/086903CE-2773-E411-A9B8-001E673967C5.root'
-                            'file:/home/users/manuelf/data/TT_Tune4C_13TeV-pythia8-tauola_MINIAODSIM.root'
+                            '/store/mc/Phys14DR/GJets_HT-600toInf_Tune4C_13TeV-madgraph-tauola/MINIAODSIM/PU20bx25_PHYS14_25_V1-v1/10000/682323F3-1774-E411-8F6A-002590A371D4.root'
+                            #'file:/home/users/manuelf/data/TT_Tune4C_13TeV-pythia8-tauola_MINIAODSIM.root'
+                            #'file:/home/users/jbradmil/PHYS14/CMSSW_7_2_2_patch1/src/086903CE-2773-E411-A9B8-001E673967C5.root'
                                 )
                                 )
 
@@ -41,15 +48,15 @@ process.TFileService = cms.Service("TFileService",
                                    fileName = cms.string('cfA.root')
                                    )
 
-
-process.trackIsolationMaker = cms.EDProducer("TrackIsolationMaker",
-                                             pfCandidatesTag = cms.InputTag("packedPFCandidates"),
-                                             vertexInputTag = cms.InputTag("offlineSlimmedPrimaryVertices"),
-                                             dR_ConeSize = cms.double(0.3),
-                                             dz_CutValue = cms.double(0.05),
-                                             minPt_PFCandidate = cms.double(5.0), #looser than the likely analysis selection
-                                             maxIso_PFCandidate = cms.double(0.25) #very loose
-                                             )
+## we don't really need this anymore since we save all pfcands
+## process.trackIsolationMaker = cms.EDProducer("TrackIsolationMaker",
+##                                              pfCandidatesTag = cms.InputTag("packedPFCandidates"),
+##                                              vertexInputTag = cms.InputTag("offlineSlimmedPrimaryVertices"),
+##                                              dR_ConeSize = cms.double(0.3),
+##                                              dz_CutValue = cms.double(0.05),
+##                                              minPt_PFCandidate = cms.double(5.0), #looser than the likely analysis selection
+##                                              maxIso_PFCandidate = cms.double(0.25) #very loose
+##                                              )
 
 #Electron Identification for PHYS 14
 ## from PhysicsTools.SelectorUtils.tools.vid_id_tools import *
@@ -94,7 +101,7 @@ process.photonProducer = cms.EDProducer("PhotonProducer",
                                       ecalRecHitsInputTag_EB = cms.InputTag("reducedEgamma","reducedEBRecHits"),
                                       )
 
-process.p = cms.Path(process.trackIsolationMaker *
+process.p = cms.Path(## process.trackIsolationMaker *
                      ## process.egmGsfElectronIDSequence *
                      ## process.electronProducer *
                      process.jecCorL1Fast *

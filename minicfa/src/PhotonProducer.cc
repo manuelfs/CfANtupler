@@ -58,7 +58,7 @@ PhotonProducer::PhotonProducer(const edm::ParameterSet& iConfig) {
 }
 PhotonProducer::~PhotonProducer()
 {
-  if (clusterTools_) delete clusterTools_;
+  // if (clusterTools_) delete clusterTools_;
 }
 void PhotonProducer::beginRun(edm::Run&, const edm::EventSetup& es) {}
 void PhotonProducer::beginJob() {}
@@ -74,16 +74,19 @@ void PhotonProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) 
 
   // Get photons, electrons, beam spot
 
-edm::Handle<pat::PhotonCollection> photons;
- iEvent.getByLabel(photonCollection_, photons);
- edm::Handle<pat::ElectronCollection> electrons;
- iEvent.getByLabel(electronCollection_, electrons);
- edm::Handle<vector<reco::Conversion> > conversions;
- iEvent.getByToken(conversionsToken_,conversions);
- edm::Handle<reco::BeamSpot> beamSpot;
- iEvent.getByToken(beamSpotToken_,beamSpot);
+  edm::Handle<pat::PhotonCollection> photons;
+  iEvent.getByLabel(photonCollection_, photons);
+  edm::Handle<pat::ElectronCollection> electrons;
+  iEvent.getByLabel(electronCollection_, electrons);
+  edm::Handle<vector<reco::Conversion> > conversions;
+  iEvent.getByToken(conversionsToken_,conversions);
+  edm::Handle<reco::BeamSpot> beamSpot;
+  iEvent.getByToken(beamSpotToken_,beamSpot);
 
-  clusterTools_ = new EcalClusterLazyTools(iEvent, iSetup, ecalRecHitsInputTag_EB_Token_, ecalRecHitsInputTag_EE_Token_);
+  // if (clusterTools_) delete clusterTools_;
+  // clusterTools_ = new noZS::EcalClusterLazyTools(iEvent, iSetup, ecalRecHitsInputTag_EB_Token_, ecalRecHitsInputTag_EE_Token_);
+
+  noZS::EcalClusterLazyTools* clusterTools_ = new noZS::EcalClusterLazyTools(iEvent, iSetup, ecalRecHitsInputTag_EB_Token_, ecalRecHitsInputTag_EE_Token_);
 
   for (unsigned int iphoton(0); iphoton < photons->size(); iphoton++) {
     const pat::Photon &photon = (*photons)[iphoton];
@@ -97,6 +100,8 @@ edm::Handle<pat::PhotonCollection> photons;
   // put everything back into event
   iEvent.put(photons_full5x5sigmaIEtaIEta,"photonsfull5x5sigmaIEtaIEta");
   iEvent.put(photons_pass_el_veto,"photonspasselveto");
+
+  delete clusterTools_;
 }
 
 bool PhotonProducer::hasMatchedPromptElectron(const reco::SuperClusterRef &sc, const edm::Handle<std::vector<pat::Electron> > &eleCol,
