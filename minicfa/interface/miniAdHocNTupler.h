@@ -538,8 +538,26 @@ class miniAdHocNTupler : public NTupler {
       jets_AK4_corL2L3_->push_back( corL2L3->at(it));
       jets_AK4_corL1FastL2L3_->push_back( corL1FastL2L3->at(it));
     }
-   
 
+    // PDF info
+    edm::Handle<float> pdf_info_x1_H, pdf_info_x2_H, pdf_info_scale_H, pdf_info_pdf1_H, pdf_info_pdf2_H;
+    edm::Handle<int> pdf_info_id1_H, pdf_info_id2_H;
+    iEvent.getByLabel( "pdfProducer", "pdfinfox1", pdf_info_x1_H );
+    iEvent.getByLabel( "pdfProducer", "pdfinfox2", pdf_info_x2_H );
+    iEvent.getByLabel( "pdfProducer", "pdfinfoscale", pdf_info_scale_H );
+    iEvent.getByLabel( "pdfProducer", "pdfinfopdf1", pdf_info_pdf1_H );
+    iEvent.getByLabel( "pdfProducer", "pdfinfopdf2", pdf_info_pdf2_H );
+    iEvent.getByLabel( "pdfProducer", "pdfinfoid1", pdf_info_id1_H );
+    iEvent.getByLabel( "pdfProducer", "pdfinfoid2", pdf_info_id2_H );
+
+    if (pdf_info_x1_H.isValid()) *pdf_info_x1_ = *pdf_info_x1_H;
+    if (pdf_info_x2_H.isValid()) *pdf_info_x2_ = *pdf_info_x2_H;
+    if (pdf_info_scale_H.isValid()) *pdf_info_scale_ = *pdf_info_scale_H;
+    if (pdf_info_pdf1_H.isValid()) *pdf_info_pdf1_ = *pdf_info_pdf1_H;
+    if (pdf_info_pdf2_H.isValid()) *pdf_info_pdf2_ = *pdf_info_pdf2_H;
+    if (pdf_info_id1_H.isValid()) *pdf_info_id1_ = *pdf_info_id1_H;
+    if (pdf_info_id2_H.isValid()) *pdf_info_id2_ = *pdf_info_id2_H;
+    
     //fill the tree    
     if (ownTheTree_){ tree_->Fill(); }
     (*trigger_name).clear();
@@ -754,7 +772,13 @@ class miniAdHocNTupler : public NTupler {
   
       tree_->Branch("fixedGridRhoFastjetAll", fixedGridRhoFastjetAll_, "fixedGridRhoFastjetAll/F");
 
-
+      tree_->Branch("pdf_info_x1", pdf_info_x1_, "pdf_info_x1/F");
+      tree_->Branch("pdf_info_x2", pdf_info_x2_, "pdf_info_x2/F");
+      tree_->Branch("pdf_info_scale", pdf_info_scale_, "pdf_info_scale/F");
+      tree_->Branch("pdf_info_pdf1", pdf_info_pdf1_, "pdf_info_pdf1/F");
+      tree_->Branch("pdf_info_pdf2", pdf_info_pdf2_, "pdf_info_pdf2/F");
+      tree_->Branch("pdf_info_id1", pdf_info_id1_, "pdf_info_id1/I");
+      tree_->Branch("pdf_info_id2", pdf_info_id2_, "pdf_info_id2/I");
     }
 
     else{
@@ -900,6 +924,15 @@ class miniAdHocNTupler : public NTupler {
     photons_pass_el_veto_ =     new std::vector<bool>;
   
     fixedGridRhoFastjetAll_ = new float;
+
+ 
+    pdf_info_x1_ = new float;
+    pdf_info_x2_ = new float;
+    pdf_info_scale_ = new float;
+    pdf_info_pdf1_ = new float;
+    pdf_info_pdf2_ = new float;
+    pdf_info_id1_ = new int;
+    pdf_info_id2_ = new int;   
  
   }
 
@@ -1012,6 +1045,14 @@ class miniAdHocNTupler : public NTupler {
     delete photons_pass_el_veto_;
 
     delete fixedGridRhoFastjetAll_;
+
+    delete pdf_info_x1_;
+    delete pdf_info_x2_;
+    delete pdf_info_scale_;
+    delete pdf_info_pdf1_;
+    delete pdf_info_pdf2_;
+    delete pdf_info_id1_;
+    delete pdf_info_id2_;
 
 
     // delete clusterTools_;
@@ -1133,6 +1174,14 @@ class miniAdHocNTupler : public NTupler {
   std::vector<float> *photons_full5x5sigmaIEtaIEta_;
   std::vector<bool> *photons_pass_el_veto_;
 
-  float *fixedGridRhoFastjetAll_; 
+  float *fixedGridRhoFastjetAll_;
+
+  float *pdf_info_x1_;
+  float *pdf_info_x2_;
+  float *pdf_info_scale_;
+  float *pdf_info_pdf1_;
+  float *pdf_info_pdf2_;
+  int *pdf_info_id1_;
+  int *pdf_info_id2_;
 
 };

@@ -93,13 +93,18 @@ process.jecCorL1FastL2L3 = cms.EDProducer("JECWrapper",
                                           )
 
 process.photonProducer = cms.EDProducer("PhotonProducer",
-                                      photonCollection =  cms.InputTag("slimmedPhotons"),
-                                      electronCollection =  cms.InputTag("slimmedElectrons"),
-                                      conversions = cms.InputTag("reducedEgamma", "reducedConversions", "PAT"),
-                                      beamSpot = cms.InputTag("offlineBeamSpot", "", "RECO"),
-                                      ecalRecHitsInputTag_EE = cms.InputTag("reducedEgamma","reducedEERecHits"),
-                                      ecalRecHitsInputTag_EB = cms.InputTag("reducedEgamma","reducedEBRecHits"),
-                                      )
+                                        photonCollection =  cms.InputTag("slimmedPhotons"),
+                                        electronCollection =  cms.InputTag("slimmedElectrons"),
+                                        conversions = cms.InputTag("reducedEgamma", "reducedConversions", "PAT"),
+                                        beamSpot = cms.InputTag("offlineBeamSpot", "", "RECO"),
+                                        ecalRecHitsInputTag_EE = cms.InputTag("reducedEgamma","reducedEERecHits"),
+                                        ecalRecHitsInputTag_EB = cms.InputTag("reducedEgamma","reducedEBRecHits"),
+                                        )
+
+process.pdfProducer = cms.EDProducer("PDFProducer",
+                                     genEventInfoInputTag = cms.string("generator"),
+                                     hepmcHandle = cms.string("generator")
+                                     )
 
 process.p = cms.Path(## process.trackIsolationMaker *
                      ## process.egmGsfElectronIDSequence *
@@ -107,6 +112,7 @@ process.p = cms.Path(## process.trackIsolationMaker *
                      process.jecCorL1Fast *
                      process.jecCorL2L3 *
                      process.jecCorL1FastL2L3 *
-                     process.photonProducer
+                     process.photonProducer *
+                     process.pdfProducer
                      )
 process.outpath = cms.EndPath(cms.ignore(process.cfA))
