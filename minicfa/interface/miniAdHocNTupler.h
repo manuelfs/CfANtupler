@@ -47,7 +47,7 @@ class miniAdHocNTupler : public NTupler {
   double getPFIsolation(edm::Handle<pat::PackedCandidateCollection> pfcands,
                         const reco::Candidate* ptcl,  
                         double r_iso_min, double r_iso_max, double kt_scale,
-                        bool use_pfweight, bool charged_only) {
+                        bool charged_only) {
 
     if (ptcl->pt()<5.) return 99999.;
 
@@ -74,28 +74,14 @@ class miniAdHocNTupler : public NTupler {
       //////////////////  NEUTRALS  /////////////////////////
       if (pfc.charge()==0){
         if (pfc.pt()>ptThresh) {
-          double wpf(1.);
-          if (use_pfweight){
-            double wpv(0.), wpu(0.);
-            for (const pat::PackedCandidate &jpfc : *pfcands) {
-              double jdr = deltaR(pfc, jpfc);
-              if (pfc.charge()!=0 || jdr<0.00001) continue;
-              double jpt = jpfc.pt();
-              if (pfc.fromPV()>1) wpv *= jpt/jdr;
-              else wpu *= jpt/jdr;
-            }
-            wpv = log(wpv);
-            wpu = log(wpu);
-            wpf = wpv/(wpv+wpu);
-          }
           /////////// PHOTONS ////////////
           if (abs(pfc.pdgId())==22) {
             if(dr < deadcone_ph) continue;
-            iso_ph += wpf*pfc.pt();
+            iso_ph += pfc.pt();
 	    /////////// NEUTRAL HADRONS ////////////
           } else if (abs(pfc.pdgId())==130) {
             if(dr < deadcone_nh) continue;
-            iso_nh += wpf*pfc.pt();
+            iso_nh += pfc.pt();
           }
         }
         //////////////////  CHARGED from PV  /////////////////////////
@@ -117,7 +103,7 @@ class miniAdHocNTupler : public NTupler {
       iso = iso_ch;
     } else {
       iso = iso_ph + iso_nh;
-      if (!use_pfweight) iso -= 0.5*iso_pu;
+      iso -= 0.5*iso_pu;
       if (iso>0) iso += iso_ch;
       else iso = iso_ch;
     }
@@ -203,7 +189,7 @@ class miniAdHocNTupler : public NTupler {
 			  lep.pdgId() == el_pfmatch[ilep]->pdgId());
       els_jet_ind->push_back(-1);
 
-      els_miniso->push_back(getPFIsolation(pfcands, dynamic_cast<const reco::Candidate *>(&lep), 0.05, 0.2, 10., false, false));
+      els_miniso->push_back(getPFIsolation(pfcands, dynamic_cast<const reco::Candidate *>(&lep), 0.05, 0.2, 10., false));
     }
 
     // Finding muon PF match
@@ -212,7 +198,7 @@ class miniAdHocNTupler : public NTupler {
       mus_isPF->push_back(lep.numberOfSourceCandidatePtrs()==1 && lep.sourceCandidatePtr(0)->pdgId()==lep.pdgId());
       mus_jet_ind->push_back(-1);
 
-      mus_miniso->push_back(getPFIsolation(pfcands, dynamic_cast<const reco::Candidate *>(&lep), 0.05, 0.2, 10., false, false));
+      mus_miniso->push_back(getPFIsolation(pfcands, dynamic_cast<const reco::Candidate *>(&lep), 0.05, 0.2, 10., false));
     }
 
     // Finding leptons in jets
