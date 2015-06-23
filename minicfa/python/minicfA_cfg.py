@@ -3,6 +3,23 @@
 ###########################################################
 
 ### General assignments
+globalTags = {
+# Global tag for early 2015 collisions data
+    "PromptReco": "GR_P_V56::All", 
+# GT for PHYS14 25ns (asymptotic alignment and calibration scenario)
+    "PHYS14": "PHYS14_25_V3::All", 
+# most 50 ns samples use asymptotic conditions, not startup conditions
+#              "74X_MC_50ns_startup": "MCRUN2_74_V8::All", 
+# standard set of conditions for 25 ns bunch spacing 74X MC
+    "74X_MC-25ns": "MCRUN2_74_V9::All", 
+# standard set of conditions for 50 ns bunch spacing 74X MC
+    "74X_MC-50ns": "MCRUN2_74_V9A::All"}
+
+datasetType = ""
+
+## Print out the cfA configuration information
+print "Using global tag " + globalTags[datasetType] + " selected from datasetType=" + datasetType
+
 import FWCore.ParameterSet.Config as cms
 from Configuration.EventContent.EventContent_cff import *
 process = cms.Process("MinicfA")
@@ -22,7 +39,8 @@ process.source = cms.Source("PoolSource",
                             # '/store/mc/Spring14miniaod/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/MINIAODSIM/PU20bx25_POSTLS170_V5-v2/00000/004C6DA7-FB03-E411-96BD-0025905A497A.root'
                             #'file:/home/users/manuelf/cmssw/cfa/CMSSW_7_2_2_patch1/src/CfANtupler/minicfa/python/TT_Tune4C_13TeV-pythia8-tauola_MINIAODSIM.root'
                             #'/store/mc/Phys14DR/GJets_HT-600toInf_Tune4C_13TeV-madgraph-tauola/MINIAODSIM/PU20bx25_PHYS14_25_V1-v1/00000/086903CE-2773-E411-A9B8-001E673967C5.root'
-                            '/store/mc/Phys14DR/GJets_HT-600toInf_Tune4C_13TeV-madgraph-tauola/MINIAODSIM/PU20bx25_PHYS14_25_V1-v1/10000/682323F3-1774-E411-8F6A-002590A371D4.root'
+                            #'/store/mc/Phys14DR/GJets_HT-600toInf_Tune4C_13TeV-madgraph-tauola/MINIAODSIM/PU20bx25_PHYS14_25_V1-v1/10000/682323F3-1774-E411-8F6A-002590A371D4.root'
+                            '/store/mc/RunIISpring15DR74/TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/Asympt25ns_MCRUN2_74_V9-v2/00000/06B5178E-F008-E511-A2CF-00261894390B.root'
                             #'file:/home/users/manuelf/data/TT_Tune4C_13TeV-pythia8-tauola_MINIAODSIM.root'
                             #'file:/home/users/jbradmil/PHYS14/CMSSW_7_2_2_patch1/src/086903CE-2773-E411-A9B8-001E673967C5.root'
                                 )
@@ -37,7 +55,7 @@ process.load('JetMETCorrections.Configuration.DefaultJEC_cff')
 from JetMETCorrections.Configuration.DefaultJEC_cff import *
 from JetMETCorrections.Configuration.JetCorrectionServices_cff import *
 
-process.GlobalTag.globaltag = "PHYS14_25_V3::All"   # GT for 25ns (asymptotic alignment and calibration scenario)
+process.GlobalTag.globaltag = globalTags[datasetType]   
 
 ### Loading branches
 process.load("CfANtupler/minicfa.branchesminicfA_cfi")
