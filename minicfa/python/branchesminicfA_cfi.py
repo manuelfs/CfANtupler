@@ -406,7 +406,9 @@ cfA = cms.EDFilter("minicfa",
                         'vertex_z:vertex.z',
                         'mass:mass',
                         'numOfDaughters:numberOfDaughters',
-                        'numOfMothers:numberOfMothers'
+                        'numOfMothers:numberOfMothers',
+                        'isPromptFinalState:isPromptFinalState',
+                        'isDirectPromptTauDecayProductFinalState:isDirectPromptTauDecayProductFinalState'
                     )
                 ),
                 #selection = cms.string('status=3'),  ## We'll cut on something later
@@ -429,7 +431,9 @@ cfA = cms.EDFilter("minicfa",
                         #'vertex_x:vertex.x',
                         #'vertex_y:vertex.y',
                         #'vertex_z:vertex.z',
-                        'numOfMothers:numberOfMothers'
+                        'numOfMothers:numberOfMothers',
+                        'isPromptFinalState:isPromptFinalState',
+                        'isDirectPromptTauDecayProductFinalState:isDirectPromptTauDecayProductFinalState'
                     )
                 ),
                 Class = cms.string('pat::PackedGenParticle')
@@ -560,15 +564,18 @@ cfA = cms.EDFilter("minicfa",
                 leaves = cms.PSet(
                     basicKinematicLeaves,
                     vars = cms.vstring(
-                        'btag_jetBProb:bDiscriminator("jetBProbabilityBJetTags")',
-                        'btag_jetProb:bDiscriminator("jetProbabilityBJetTags")',
-                        'btag_TC_highPur:bDiscriminator("trackCountingHighPurBJetTags")',
-                        'btag_TC_highEff:bDiscriminator("trackCountingHighEffBJetTags")',
-                        'btag_secVertexHighEff:bDiscriminator("simpleSecondaryVertexHighEffBJetTags")',
-                        'btag_secVertexHighPur:bDiscriminator("simpleSecondaryVertexHighPurBJetTags")',
-                        'btag_inc_secVertexCombined:bDiscriminator("combinedInclusiveSecondaryVertexV2BJetTags")',
-                        'btag_pf_secVertexCombined:bDiscriminator("pfCombinedSecondaryVertexBJetTags")',
-                        'btag_MVA:bDiscriminator("combinedMVABJetTags")',
+                        'caloJetMap_pt:userFloat("caloJetMap:pt")',
+                        'caloJetMap_emEnergyFraction:userFloat("caloJetMap:emEnergyFraction")',
+                        'btag_jetBProb:bDiscriminator("pfJetBProbabilityBJetTags")',
+                        'btag_jetProb:bDiscriminator("pfJetProbabilityBJetTags")',
+                        'btag_TC_highPur:bDiscriminator("pfTrackCountingHighPurBJetTags")',
+                        'btag_TC_highEff:bDiscriminator("pfTrackCountingHighEffBJetTags")',
+                        'btag_secVertexHighEff:bDiscriminator("pfSimpleSecondaryVertexHighEffBJetTags")',
+                        'btag_secVertexHighPur:bDiscriminator("pfSimpleSecondaryVertexHighPurBJetTags")',
+                        'btag_inc_secVertexCombined:bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags")',
+                        'btag_pf_secVertexCombined:bDiscriminator("pfCombinedSecondaryVertexV2BJetTags")',
+                        'btag_MVA:bDiscriminator("pfCombinedMVABJetTags")',
+                        'btag_csv_soft_lepton:bDiscriminator("pfCombinedSecondaryVertexSoftLeptonBJetTags")',
                         'pileupID_MVA:userFloat("pileupJetId:fullDiscriminant")',
                         #'pileupID_MVA:userFloat("pileupJetIdEvaluator:fullDiscriminant")',
                         #'pileupID_cutbased:userInt("pileupJetId:cutbasedId")',
