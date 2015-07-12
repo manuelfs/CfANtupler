@@ -2,9 +2,15 @@ CfANtupler
 ==========
 
 Code to make cfA ntuples based on CMSSW 7XX and miniAOD.
-It's been tested on `CMSSW_7_2_2_patch1`. 
+It's been tested on `CMSSW_7_2_2_patch1` and in 7_4_X releases. 
+CMSSW_7_2_2_patch1 should be used to process PHYS14 MC
+and a 7_4_X release should be used to process 13 TeV data
+and 7_4_X MC.
 
 #### Running the code
+Change the variable `datasetType` in `minicfA_cfg.py` to the appropriate value
+for the dataset that you are processing.
+
 Issue the following commands on lxplus:
 
     cmsrel CMSSW_7_2_2_patch1

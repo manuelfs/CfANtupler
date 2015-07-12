@@ -15,15 +15,32 @@ globalTags = {
 # standard set of conditions for 50 ns bunch spacing 74X MC
     "74X_MC-50ns": "MCRUN2_74_V9A::All"}
 
+######################################
+# The following line must be changed #
+######################################
 datasetType = ""
 
 ## Print out the cfA configuration information
 print "Using global tag " + globalTags[datasetType] + " selected from datasetType=" + datasetType
 
+## Switches to treat data and MC differently
+## determine from global tag if this is MC or data
+isMC=True
+if datasetType == "PromptReco":
+    isMC=False
+## Production of MiniAOD from data is run in a single step along with the RECO, so the process tag is "RECO"
+## MC is produced in multiple steps and the mini-AOD step is called "PAT"
+processTag="PAT"
+if not isMC:
+    processTag="RECO"
+
+
 import FWCore.ParameterSet.Config as cms
 from Configuration.EventContent.EventContent_cff import *
 process = cms.Process("MinicfA")
 process.load("FWCore.MessageService.MessageLogger_cfi")
+# the following is done to avoid huge log files
+process.MessageLogger.cerr.default.limit = 1000
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 
 ## process.SimpleMemoryCheck = cms.Service("SimpleMemoryCheck")
@@ -41,6 +58,7 @@ process.source = cms.Source("PoolSource",
                             #'/store/mc/Phys14DR/GJets_HT-600toInf_Tune4C_13TeV-madgraph-tauola/MINIAODSIM/PU20bx25_PHYS14_25_V1-v1/00000/086903CE-2773-E411-A9B8-001E673967C5.root'
                             #'/store/mc/Phys14DR/GJets_HT-600toInf_Tune4C_13TeV-madgraph-tauola/MINIAODSIM/PU20bx25_PHYS14_25_V1-v1/10000/682323F3-1774-E411-8F6A-002590A371D4.root'
                             '/store/mc/RunIISpring15DR74/TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/Asympt25ns_MCRUN2_74_V9-v2/00000/06B5178E-F008-E511-A2CF-00261894390B.root'
+                            #'/store/data/Run2015B/SingleMu/MINIAOD/PromptReco-v1/000/251/028/00000/705C6746-3C26-E511-92AC-02163E0139CF.root'
                             #'file:/home/users/manuelf/data/TT_Tune4C_13TeV-pythia8-tauola_MINIAODSIM.root'
                             #'file:/home/users/jbradmil/PHYS14/CMSSW_7_2_2_patch1/src/086903CE-2773-E411-A9B8-001E673967C5.root'
                                 )
@@ -113,7 +131,7 @@ process.jecCorL1FastL2L3 = cms.EDProducer("JECWrapper",
 process.photonProducer = cms.EDProducer("PhotonProducer",
                                         photonCollection =  cms.InputTag("slimmedPhotons"),
                                         electronCollection =  cms.InputTag("slimmedElectrons"),
-                                        conversions = cms.InputTag("reducedEgamma", "reducedConversions", "PAT"),
+                                        conversions = cms.InputTag("reducedEgamma", "reducedConversions", processTag),
                                         beamSpot = cms.InputTag("offlineBeamSpot", "", "RECO"),
                                         ecalRecHitsInputTag_EE = cms.InputTag("reducedEgamma","reducedEERecHits"),
                                         ecalRecHitsInputTag_EB = cms.InputTag("reducedEgamma","reducedEBRecHits"),

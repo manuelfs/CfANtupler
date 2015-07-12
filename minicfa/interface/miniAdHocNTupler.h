@@ -317,7 +317,9 @@ class miniAdHocNTupler : public NTupler {
 
     //////////////// Filter decisions and names //////////////////
     edm::Handle<edm::TriggerResults> filterBits;
-    edm::InputTag labfilterBits("TriggerResults","","PAT");
+    std::string processLabel("PAT");
+    if(iEvent.isRealData()) processLabel="RECO";
+    edm::InputTag labfilterBits("TriggerResults","",processLabel);
     iEvent.getByLabel(labfilterBits,filterBits);  
     int trackingfailurefilterResult(1);			    
     int goodVerticesfilterResult(1);				    
