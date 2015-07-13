@@ -21,6 +21,7 @@
 #include "DataFormats/PatCandidates/interface/PackedTriggerPrescales.h"
 #include "DataFormats/PatCandidates/interface/TriggerObjectStandAlone.h"
 #include "DataFormats/L1GlobalTrigger/interface/L1GlobalTriggerReadoutRecord.h"
+#include "DataFormats/MuonReco/interface/MuonSelectors.h"
 
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "DataFormats/Common/interface/ValueMap.h"
@@ -117,6 +118,10 @@ class miniAdHocNTupler : public NTupler {
 
     nevents++;
 
+    // Good PVs
+    edm::Handle<reco::VertexCollection> vtx_h;
+    iEvent.getByLabel("offlineSlimmedPrimaryVertices", vtx_h);
+
     //////////////// Fat jets //////////////////
     edm::Handle<pat::JetCollection> jets;
     iEvent.getByLabel("slimmedJets", jets);
@@ -199,6 +204,9 @@ class miniAdHocNTupler : public NTupler {
       mus_jet_ind->push_back(-1);
 
       mus_miniso->push_back(getPFIsolation(pfcands, dynamic_cast<const reco::Candidate *>(&lep), 0.05, 0.2, 10., false));
+      mus_isLooseMuon->push_back(lep.isLooseMuon( ));
+      mus_isMediumMuon->push_back(lep.isMediumMuon( ));
+      mus_isTightMuon->push_back(lep.isTightMuon( vtx_h->at(0)));
     }
 
     // Finding leptons in jets
@@ -576,6 +584,10 @@ class miniAdHocNTupler : public NTupler {
     (*els_miniso).clear();
     (*mus_miniso).clear();
 
+    (*mus_isLooseMuon).clear();
+    (*mus_isMediumMuon).clear();
+    (*mus_isTightMuon).clear();
+
     (*jets_AK4_maxpt_id).clear();
     (*jets_AK4_mu_ind).clear();
     (*jets_AK4_el_ind).clear();
@@ -685,9 +697,12 @@ class miniAdHocNTupler : public NTupler {
       tree_->Branch("trkPOG_toomanystripclus53Xfilter_decision",	  trkPOG_toomanystripclus53Xfilter_decision_	 ,"trkPOG_toomanystripclus53Xfilter_decision/I");	  
       tree_->Branch("hcallaserfilter_decision",    hcallaserfilter_decision_,"hcallaserfilter_decision/I");   
 
-      tree_->Branch("mus_isPF",&mus_isPF);
-      tree_->Branch("mus_miniso",&mus_miniso);
-      tree_->Branch("mus_jet_ind",	&mus_jet_ind);
+      tree_->Branch("mus_isPF", &mus_isPF);
+      tree_->Branch("mus_miniso", &mus_miniso);
+      tree_->Branch("mus_isLooseMuon",&mus_isLooseMuon);
+      tree_->Branch("mus_isMediumMuon",&mus_isMediumMuon);
+      tree_->Branch("mus_isTightMuon",&mus_isTightMuon);
+      tree_->Branch("mus_jet_ind", &mus_jet_ind);
 
 
       
@@ -847,6 +862,10 @@ class miniAdHocNTupler : public NTupler {
     els_miniso = new std::vector<float>;
     mus_miniso = new std::vector<float>;
 
+    mus_isLooseMuon = new std::vector<bool>;
+    mus_isMediumMuon = new std::vector<bool>;
+    mus_isTightMuon = new std::vector<bool>;
+
     jets_AK4_maxpt_id = new std::vector<int>;
     jets_AK4_mu_ind = new std::vector<int>;
     jets_AK4_el_ind = new std::vector<int>;
@@ -968,6 +987,11 @@ class miniAdHocNTupler : public NTupler {
 
     delete els_miniso;
     delete mus_miniso;
+
+    delete mus_isLooseMuon;
+    delete mus_isMediumMuon;
+    delete mus_isTightMuon;
+    
 
     delete jets_AK4_maxpt_id;
     delete jets_AK4_mu_ind;
@@ -1097,6 +1121,10 @@ class miniAdHocNTupler : public NTupler {
 
   std::vector<float> * els_miniso;
   std::vector<float> * mus_miniso;
+
+  std::vector<bool> * mus_isLooseMuon;
+  std::vector<bool> * mus_isMediumMuon;
+  std::vector<bool> * mus_isTightMuon;
 
   std::vector<int> * jets_AK4_maxpt_id;
   std::vector<int> * jets_AK4_mu_ind;
