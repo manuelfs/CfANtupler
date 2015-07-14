@@ -1,7 +1,6 @@
 // ADHOCNTUPLER: Creates eventA in the cfA ntuples, the tree that requires
 //               Ad hoc c++ code to be filled.
 
-#include <cmath>
 
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Framework/interface/EDProducer.h"
@@ -38,6 +37,10 @@
 #include <fastjet/ClusterSequence.hh>
 #include <fastjet/GhostedAreaSpec.hh>
 
+#include "CfANtupler/Utils/interface/TrackIsolationFilter.h"
+// #include "CfANtupler/minicfa/interface/getPFIsolation.h"
+
+
 
 using namespace std;
 using namespace fastjet;
@@ -45,7 +48,8 @@ using namespace fastjet;
 class miniAdHocNTupler : public NTupler {
  public:
 
-  double getPFIsolation(edm::Handle<pat::PackedCandidateCollection> pfcands,
+  
+double getPFIsolation(edm::Handle<pat::PackedCandidateCollection> pfcands,
                         const reco::Candidate* ptcl,  
                         double r_iso_min, double r_iso_max, double kt_scale,
                         bool charged_only) {
@@ -111,8 +115,9 @@ class miniAdHocNTupler : public NTupler {
     iso = iso/ptcl->pt();
 
     return iso;
-  }
+}
 
+  
   void fill(edm::Event& iEvent){
 
 
@@ -153,7 +158,7 @@ class miniAdHocNTupler : public NTupler {
         fjets30_m->push_back(fjets[ifjet].m());
       }
 
-      //      cout<<endl<<"FAT JETS"<<endl;
+      //     cout<<endl<<"FAT JETS"<<endl;
       //      for (unsigned int ifjet(0); ifjet < fjets.size(); ifjet++) {
       //	cout<<"pt "<<fjets[ifjet].pt()<<", eta "<<fjets[ifjet].eta()<<", phi "<<fjets[ifjet].phi()<<endl;
       //      }
@@ -428,27 +433,83 @@ class miniAdHocNTupler : public NTupler {
 
 
     //isolated pf candidates as found by TrackIsolationMaker                                                                               
-    /* edm::Handle< vector<float> > pfcand_dzpv; */
-    /* iEvent.getByLabel("trackIsolationMaker","pfcandsdzpv", pfcand_dzpv); */
-    /* edm::Handle< vector<float> > pfcand_pt; */
-    /* iEvent.getByLabel("trackIsolationMaker","pfcandspt", pfcand_pt); */
-    /* edm::Handle< vector<float> > pfcand_eta; */
-    /* iEvent.getByLabel("trackIsolationMaker","pfcandseta", pfcand_eta); */
-    /* edm::Handle< vector<float> > pfcand_phi; */
-    /* iEvent.getByLabel("trackIsolationMaker","pfcandsphi", pfcand_phi); */
-    /* edm::Handle< vector<float> > pfcand_iso; */
-    /* iEvent.getByLabel("trackIsolationMaker","pfcandstrkiso", pfcand_iso); */
-    /* edm::Handle< vector<int> > pfcand_charge; */
-    /* iEvent.getByLabel("trackIsolationMaker","pfcandschg", pfcand_charge); */
+    // cout << "Get electron tracks..." << endl;
+    edm::Handle< vector<TLorentzVector> > el_pfcandsP4;
+    iEvent.getByLabel("IsolatedElectronTracksVeto","pfcands", el_pfcandsP4);
+    edm::Handle< vector<double> > el_pfcands_trkiso;
+    iEvent.getByLabel("IsolatedElectronTracksVeto","pfcandstrkiso", el_pfcands_trkiso);
+    edm::Handle< vector<double> > el_pfcandsdzpv;
+    iEvent.getByLabel("IsolatedElectronTracksVeto","pfcandsdzpv", el_pfcandsdzpv);
+    edm::Handle< vector<int> > el_pfcandsfromPV;
+    iEvent.getByLabel("IsolatedElectronTracksVeto","pfcandsfromPV", el_pfcandsfromPV);
+    edm::Handle< vector<double> > el_pfcandsminiso;
+    iEvent.getByLabel("IsolatedElectronTracksVeto","pfcandsminiso", el_pfcandsminiso);
+    edm::Handle< vector<double> > el_pfcandsminisochgonly;
+    iEvent.getByLabel("IsolatedElectronTracksVeto","pfcandsminisochgonly", el_pfcandsminisochgonly);
+  for (size_t it=0; it<el_pfcandsP4->size(); ++it ) {
+      el_tracks_pt_->push_back( el_pfcandsP4->at(it).Pt());
+      el_tracks_eta_ -> push_back( el_pfcandsP4->at(it).Eta()); 
+      el_tracks_phi_ -> push_back( el_pfcandsP4->at(it).Phi());
+      el_tracks_E_ -> push_back( el_pfcandsP4->at(it).E()); 
+      el_tracks_R03_trkiso_ -> push_back( el_pfcands_trkiso->at(it)); 
+      el_tracks_dzpv_ -> push_back( el_pfcandsdzpv->at(it));
+      el_tracks_fromPV_ -> push_back( el_pfcandsfromPV->at(it));
+      el_tracks_miniso_ -> push_back( el_pfcandsminiso->at(it));
+      el_tracks_miniso_chg_only_ -> push_back( el_pfcandsminisochgonly->at(it));
+    }
 
-    /* for (size_t it=0; it<pfcand_pt->size(); ++it ) { */
-    /*   isotk_pt_->push_back( pfcand_pt->at(it)); */
-    /*   isotk_phi_ -> push_back( pfcand_phi->at(it)); */
-    /*   isotk_eta_ -> push_back( pfcand_eta->at(it)); */
-    /*   isotk_iso_ -> push_back( pfcand_iso->at(it)); */
-    /*   isotk_dzpv_ -> push_back( pfcand_dzpv->at(it)); */
-    /*   isotk_charge_ -> push_back( pfcand_charge->at(it)); */
-    /* } */
+    // cout << "Get muon tracks..." << endl;
+    edm::Handle< vector<TLorentzVector> > mu_pfcandsP4;
+    iEvent.getByLabel("IsolatedMuonTracksVeto","pfcands", mu_pfcandsP4);
+    edm::Handle< vector<double> > mu_pfcands_trkiso;
+    iEvent.getByLabel("IsolatedMuonTracksVeto","pfcandstrkiso", mu_pfcands_trkiso);
+    edm::Handle< vector<double> > mu_pfcandsdzpv;
+    iEvent.getByLabel("IsolatedMuonTracksVeto","pfcandsdzpv", mu_pfcandsdzpv);
+    edm::Handle< vector<int> > mu_pfcandsfromPV;
+    iEvent.getByLabel("IsolatedMuonTracksVeto","pfcandsfromPV", mu_pfcandsfromPV);
+    edm::Handle< vector<double> > mu_pfcandsminiso;
+    iEvent.getByLabel("IsolatedMuonTracksVeto","pfcandsminiso", mu_pfcandsminiso);
+    edm::Handle< vector<double> > mu_pfcandsminisochgonly;
+    iEvent.getByLabel("IsolatedMuonTracksVeto","pfcandsminisochgonly", mu_pfcandsminisochgonly);
+    for (size_t it=0; it<mu_pfcandsP4->size(); ++it ) {
+      mu_tracks_pt_->push_back( mu_pfcandsP4->at(it).Pt());
+      mu_tracks_eta_ -> push_back( mu_pfcandsP4->at(it).Eta()); 
+      mu_tracks_phi_ -> push_back( mu_pfcandsP4->at(it).Phi());
+      mu_tracks_E_ -> push_back( mu_pfcandsP4->at(it).E()); 
+      mu_tracks_R03_trkiso_ -> push_back( mu_pfcands_trkiso->at(it));
+      mu_tracks_dzpv_ -> push_back( mu_pfcandsdzpv->at(it));
+      mu_tracks_fromPV_ -> push_back( mu_pfcandsfromPV->at(it));
+      mu_tracks_miniso_ -> push_back( mu_pfcandsminiso->at(it));
+      mu_tracks_miniso_chg_only_ -> push_back( mu_pfcandsminisochgonly->at(it));
+    }
+
+    //    cout << "Get hadronic tracks..." << endl;
+    edm::Handle< vector<TLorentzVector> > had_pfcandsP4;
+    iEvent.getByLabel("IsolatedHadronicTracksVeto","pfcands", had_pfcandsP4);
+    edm::Handle< vector<double> > had_pfcands_trkiso;
+    iEvent.getByLabel("IsolatedHadronicTracksVeto","pfcandstrkiso", had_pfcands_trkiso);
+    edm::Handle< vector<double> > had_pfcandsdzpv;
+    iEvent.getByLabel("IsolatedHadronicTracksVeto","pfcandsdzpv", had_pfcandsdzpv);
+    edm::Handle< vector<int> > had_pfcandsfromPV;
+    iEvent.getByLabel("IsolatedHadronicTracksVeto","pfcandsfromPV", had_pfcandsfromPV);
+    edm::Handle< vector<double> > had_pfcandsminiso;
+    iEvent.getByLabel("IsolatedHadronicTracksVeto","pfcandsminiso", had_pfcandsminiso);
+    edm::Handle< vector<double> > had_pfcandsminisochgonly;
+    iEvent.getByLabel("IsolatedHadronicTracksVeto","pfcandsminisochgonly", had_pfcandsminisochgonly);
+   for (size_t it=0; it<had_pfcandsP4->size(); ++it ) {
+      had_tracks_pt_->push_back( had_pfcandsP4->at(it).Pt());
+      had_tracks_eta_ -> push_back( had_pfcandsP4->at(it).Eta()); 
+      had_tracks_phi_ -> push_back( had_pfcandsP4->at(it).Phi());
+      had_tracks_E_ -> push_back( had_pfcandsP4->at(it).E()); 
+      had_tracks_R03_trkiso_ -> push_back( had_pfcands_trkiso->at(it));
+      had_tracks_dzpv_ -> push_back( had_pfcandsdzpv->at(it));
+      had_tracks_fromPV_ -> push_back( had_pfcandsfromPV->at(it));
+      had_tracks_miniso_ -> push_back( had_pfcandsminiso->at(it));
+      had_tracks_miniso_chg_only_ -> push_back( had_pfcandsminisochgonly->at(it));
+    }
+  
+
+
 
     // tauID -- see https://indico.cern.ch/event/359233/contribution/4/material/slides/0.pdf
     for (unsigned int itau(0); itau < taus->size(); itau++) {
@@ -605,12 +666,35 @@ class miniAdHocNTupler : public NTupler {
     /* (*els_passPhys14MediumId_).clear(); */
     /* (*els_passPhys14TightId_).clear(); */
 
-    /* (*isotk_pt_).clear(); */
-    /* (*isotk_phi_).clear(); */
-    /* (*isotk_eta_).clear(); */
-    /* (*isotk_iso_).clear(); */
-    /* (*isotk_dzpv_).clear(); */
-    /* (*isotk_charge_).clear(); */
+    (*el_tracks_pt_).clear();
+    (*el_tracks_phi_).clear(); 
+    (*el_tracks_eta_).clear(); 
+    (*el_tracks_E_).clear(); 
+    (*el_tracks_R03_trkiso_).clear();
+    (*el_tracks_miniso_).clear();
+    (*el_tracks_miniso_chg_only_).clear();
+    (*el_tracks_dzpv_).clear();
+    (*el_tracks_fromPV_).clear();
+
+     (*mu_tracks_pt_).clear();
+    (*mu_tracks_phi_).clear(); 
+    (*mu_tracks_eta_).clear(); 
+    (*mu_tracks_E_).clear(); 
+    (*mu_tracks_R03_trkiso_).clear();
+    (*mu_tracks_miniso_).clear();
+    (*mu_tracks_miniso_chg_only_).clear();
+    (*mu_tracks_dzpv_).clear();
+    (*mu_tracks_fromPV_).clear();
+
+    (*had_tracks_pt_).clear();
+    (*had_tracks_phi_).clear(); 
+    (*had_tracks_eta_).clear(); 
+    (*had_tracks_E_).clear(); 
+    (*had_tracks_R03_trkiso_).clear();
+    (*had_tracks_miniso_).clear();
+    (*had_tracks_miniso_chg_only_).clear();
+    (*had_tracks_dzpv_).clear();
+    (*had_tracks_fromPV_).clear();
     
     (*taus_CombinedIsolationDeltaBetaCorrRaw3Hits_).clear();
     (*taus_byLooseCombinedIsolationDeltaBetaCorr3Hits_).clear();
@@ -724,12 +808,7 @@ class miniAdHocNTupler : public NTupler {
       /* tree_->Branch("els_passPhys14TightId",	&els_passPhys14TightId_);      */ 
 
       
-      /* tree_->Branch("isotk_pt",&isotk_pt_); */
-      /* tree_->Branch("isotk_phi",&isotk_phi_); */
-      /* tree_->Branch("isotk_eta",&isotk_eta_); */
-      /* tree_->Branch("isotk_iso",&isotk_iso_); */
-      /* tree_->Branch("isotk_dzpv",&isotk_dzpv_); */
-      /* tree_->Branch("isotk_charge",&isotk_charge_); */
+
 
       tree_->Branch("taus_n_pfcands",&taus_n_pfcands_);
       tree_->Branch("taus_decayMode",&taus_decayMode_);
@@ -782,6 +861,36 @@ class miniAdHocNTupler : public NTupler {
       tree_->Branch("pdf_info_pdf2", pdf_info_pdf2_, "pdf_info_pdf2/F");
       tree_->Branch("pdf_info_id1", pdf_info_id1_, "pdf_info_id1/I");
       tree_->Branch("pdf_info_id2", pdf_info_id2_, "pdf_info_id2/I");
+
+      tree_->Branch("el_tracks_pt",&el_tracks_pt_); 
+      tree_->Branch("el_tracks_eta",&el_tracks_eta_);
+      tree_->Branch("el_tracks_phi",&el_tracks_phi_); 
+      tree_->Branch("el_tracks_E",&el_tracks_E_); 
+      tree_->Branch("el_tracks_dzpv",&el_tracks_dzpv_);
+      tree_->Branch("el_tracks_fromPV",&el_tracks_fromPV_);
+      tree_->Branch("el_tracks_R03_trkiso",&el_tracks_R03_trkiso_);
+      tree_->Branch("el_tracks_miniso",&el_tracks_miniso_);
+      tree_->Branch("el_tracks_miniso_chg_only",&el_tracks_miniso_chg_only_);
+
+      tree_->Branch("mu_tracks_pt",&mu_tracks_pt_); 
+      tree_->Branch("mu_tracks_eta",&mu_tracks_eta_);
+      tree_->Branch("mu_tracks_phi",&mu_tracks_phi_); 
+      tree_->Branch("mu_tracks_E",&mu_tracks_E_); 
+      tree_->Branch("mu_tracks_dzpv",&mu_tracks_dzpv_);
+      tree_->Branch("mu_tracks_fromPV",&mu_tracks_fromPV_);
+      tree_->Branch("mu_tracks_R03_trkiso",&mu_tracks_R03_trkiso_);
+      tree_->Branch("mu_tracks_miniso",&mu_tracks_miniso_);
+      tree_->Branch("mu_tracks_miniso_chg_only",&mu_tracks_miniso_chg_only_);
+      
+      tree_->Branch("had_tracks_pt",&had_tracks_pt_); 
+      tree_->Branch("had_tracks_eta",&had_tracks_eta_);
+      tree_->Branch("had_tracks_phi",&had_tracks_phi_); 
+      tree_->Branch("had_tracks_E",&had_tracks_E_); 
+      tree_->Branch("had_tracks_dzpv",&had_tracks_dzpv_);
+      tree_->Branch("had_tracks_fromPV",&had_tracks_fromPV_);
+      tree_->Branch("had_tracks_R03_trkiso",&had_tracks_R03_trkiso_);
+      tree_->Branch("had_tracks_miniso",&had_tracks_miniso_);
+      tree_->Branch("had_tracks_miniso_chg_only",&had_tracks_miniso_chg_only_);
     }
 
     else{
@@ -884,13 +993,36 @@ class miniAdHocNTupler : public NTupler {
     /* els_passPhys14TightId_ = new std::vector<int>; */
 
     //isolated tracks (charged pf candidates)                                                                                                               
-    /* isotk_pt_ = new std::vector<float>; */
-    /* isotk_phi_ = new std::vector<float>; */
-    /* isotk_eta_ = new std::vector<float>; */
-    /* isotk_iso_ = new std::vector<float>; */
-    /* isotk_dzpv_ = new std::vector<float>; */
-    /* isotk_charge_ = new std::vector<int>; */
+    el_tracks_pt_ = new std::vector<float>;
+    el_tracks_phi_ = new std::vector<float>;
+    el_tracks_eta_ = new std::vector<float>;
+    el_tracks_E_ = new std::vector<float>;
+    el_tracks_R03_trkiso_ = new std::vector<float>;
+    el_tracks_dzpv_ = new std::vector<float>;
+    el_tracks_fromPV_ = new std::vector<int>;
+    el_tracks_miniso_ = new std::vector<float>;
+    el_tracks_miniso_chg_only_ = new std::vector<float>;
 
+    mu_tracks_pt_ = new std::vector<float>;
+    mu_tracks_phi_ = new std::vector<float>;
+    mu_tracks_eta_ = new std::vector<float>;
+    mu_tracks_E_ = new std::vector<float>;
+    mu_tracks_R03_trkiso_ = new std::vector<float>;
+    mu_tracks_dzpv_ = new std::vector<float>;
+    mu_tracks_fromPV_ = new std::vector<int>;
+    mu_tracks_miniso_ = new std::vector<float>;
+    mu_tracks_miniso_chg_only_ = new std::vector<float>;
+    
+    had_tracks_pt_ = new std::vector<float>;
+    had_tracks_phi_ = new std::vector<float>;
+    had_tracks_eta_ = new std::vector<float>;
+    had_tracks_E_ = new std::vector<float>;
+    had_tracks_R03_trkiso_ = new std::vector<float>;
+    had_tracks_dzpv_ = new std::vector<float>;
+    had_tracks_fromPV_ = new std::vector<int>;
+    had_tracks_miniso_ = new std::vector<float>;
+    had_tracks_miniso_chg_only_ = new std::vector<float>;
+    
     taus_CombinedIsolationDeltaBetaCorrRaw3Hits_ = new std::vector<float>;
     taus_byLooseCombinedIsolationDeltaBetaCorr3Hits_ = new std::vector<bool>;
     taus_byMediumCombinedIsolationDeltaBetaCorr3Hits_ = new std::vector<bool>;
@@ -1010,13 +1142,36 @@ class miniAdHocNTupler : public NTupler {
     /* delete els_passPhys14MediumId_; */
     /* delete els_passPhys14TightId_; */
 
-    /* delete isotk_pt_; */
-    /* delete isotk_phi_; */
-    /* delete isotk_eta_; */
-    /* delete isotk_iso_; */
-    /* delete isotk_dzpv_; */
-    /* delete isotk_charge_; */
+    delete el_tracks_pt_;
+    delete el_tracks_phi_;
+    delete el_tracks_eta_;
+    delete el_tracks_E_;
+    delete el_tracks_R03_trkiso_;
+    delete el_tracks_dzpv_;
+    delete el_tracks_fromPV_;
+    delete el_tracks_miniso_;
+    delete el_tracks_miniso_chg_only_;
 
+    delete mu_tracks_pt_;
+    delete mu_tracks_phi_;
+    delete mu_tracks_eta_;
+    delete mu_tracks_E_;
+    delete mu_tracks_R03_trkiso_;
+    delete mu_tracks_dzpv_;
+    delete mu_tracks_fromPV_;
+    delete mu_tracks_miniso_;
+    delete mu_tracks_miniso_chg_only_;
+    
+    delete had_tracks_pt_;
+    delete had_tracks_phi_;
+    delete had_tracks_eta_;
+    delete had_tracks_E_;
+    delete had_tracks_R03_trkiso_;
+    delete had_tracks_dzpv_;
+    delete had_tracks_fromPV_;
+    delete had_tracks_miniso_;
+    delete had_tracks_miniso_chg_only_;
+    
     delete taus_CombinedIsolationDeltaBetaCorrRaw3Hits_;
     delete taus_byLooseCombinedIsolationDeltaBetaCorr3Hits_;
     delete taus_byMediumCombinedIsolationDeltaBetaCorr3Hits_;
@@ -1143,13 +1298,36 @@ class miniAdHocNTupler : public NTupler {
   /* std::vector<int> * els_passPhys14MediumId_; */
   /* std::vector<int> * els_passPhys14TightId_; */
   
-  /* std::vector<float> * isotk_pt_; */
-  /* std::vector<float> * isotk_phi_; */
-  /* std::vector<float> * isotk_eta_; */
-  /* std::vector<float> * isotk_iso_; */
-  /* std::vector<float> * isotk_dzpv_; */
-  /* std::vector<int> *   isotk_charge_; */
+  std::vector<float> * el_tracks_pt_;
+  std::vector<float> * el_tracks_phi_;
+  std::vector<float> * el_tracks_eta_;
+  std::vector<float> * el_tracks_E_;
+  std::vector<float> * el_tracks_R03_trkiso_;
+  std::vector<float> * el_tracks_dzpv_;
+  std::vector<int> *   el_tracks_fromPV_;
+  std::vector<float> *   el_tracks_miniso_;
+  std::vector<float> *   el_tracks_miniso_chg_only_;
 
+  std::vector<float> * mu_tracks_pt_;
+  std::vector<float> * mu_tracks_phi_;
+  std::vector<float> * mu_tracks_eta_;
+  std::vector<float> * mu_tracks_E_;
+  std::vector<float> * mu_tracks_R03_trkiso_;
+  std::vector<float> * mu_tracks_dzpv_;
+  std::vector<int> *   mu_tracks_fromPV_;
+  std::vector<float> *   mu_tracks_miniso_;
+  std::vector<float> *   mu_tracks_miniso_chg_only_;
+  
+  std::vector<float> * had_tracks_pt_;
+  std::vector<float> * had_tracks_phi_;
+  std::vector<float> * had_tracks_eta_;
+  std::vector<float> * had_tracks_E_;
+  std::vector<float> * had_tracks_R03_trkiso_;
+  std::vector<float> * had_tracks_dzpv_;
+  std::vector<int> *   had_tracks_fromPV_;
+  std::vector<float> *   had_tracks_miniso_;
+  std::vector<float> *   had_tracks_miniso_chg_only_;
+  
   std::vector<float> *  taus_CombinedIsolationDeltaBetaCorrRaw3Hits_;
   std::vector<bool> *  taus_byLooseCombinedIsolationDeltaBetaCorr3Hits_;
   std::vector<bool> *  taus_byMediumCombinedIsolationDeltaBetaCorr3Hits_;
