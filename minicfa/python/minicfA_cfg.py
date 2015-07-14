@@ -142,6 +142,49 @@ process.pdfProducer = cms.EDProducer("PDFProducer",
                                      hepmcHandle = cms.string("generator")
                                      )
 
+from CfANtupler.Utils.trackIsolationMaker_cfi import trackIsolationFilter
+from CfANtupler.Utils.trackIsolationMaker_cfi import trackIsolationCounter
+
+process.IsolatedElectronTracksVeto = trackIsolationFilter.clone(
+doTrkIsoVeto= False,
+#vertexInputTag = cms.InputTag("offlineSlimmedPrimaryVertices"),
+pfCandidatesTag = cms.InputTag("packedPFCandidates"),
+dR_ConeSize = cms.double(0.3),
+mini_ConeMax = cms.double(0.2),
+mini_ConeMin = cms.double(0.05),
+dz_CutValue = cms.double(0.1),
+minPt_PFCandidate = cms.double(5.0),
+isoCut = cms.double(0.2),
+pdgId = cms.int32(11),
+mTCut=cms.double(0)
+)
+process.IsolatedMuonTracksVeto = trackIsolationFilter.clone(
+doTrkIsoVeto= False,
+#vertexInputTag = cms.InputTag("offlineSlimmedPrimaryVertices"),
+pfCandidatesTag = cms.InputTag("packedPFCandidates"),
+dR_ConeSize = cms.double(0.3),
+mini_ConeMax = cms.double(0.2),
+mini_ConeMin = cms.double(0.05),
+dz_CutValue = cms.double(0.1),
+minPt_PFCandidate = cms.double(5.0),
+isoCut = cms.double(0.2),
+pdgId = cms.int32(13),
+mTCut=cms.double(0)
+)
+process.IsolatedHadronicTracksVeto = trackIsolationFilter.clone(
+doTrkIsoVeto= False,
+#vertexInputTag = cms.InputTag("offlineSlimmedPrimaryVertices"),
+pfCandidatesTag = cms.InputTag("packedPFCandidates"),
+dR_ConeSize = cms.double(0.3),
+mini_ConeMax = cms.double(0.2),
+mini_ConeMin = cms.double(0.05),
+dz_CutValue = cms.double(0.1),
+minPt_PFCandidate = cms.double(10.0),
+isoCut = cms.double(0.1),
+pdgId = cms.int32(211),
+mTCut=cms.double(0)
+)
+
 process.p = cms.Path(## process.trackIsolationMaker *
                      ## process.egmGsfElectronIDSequence *
                      ## process.electronProducer *
@@ -149,6 +192,10 @@ process.p = cms.Path(## process.trackIsolationMaker *
                      process.jecCorL2L3 *
                      process.jecCorL1FastL2L3 *
                      process.photonProducer *
-                     process.pdfProducer
+                     process.pdfProducer *
+                     process.IsolatedElectronTracksVeto *
+                     process.IsolatedMuonTracksVeto *
+                     process.IsolatedHadronicTracksVeto
                      )
+
 process.outpath = cms.EndPath(cms.ignore(process.cfA))
