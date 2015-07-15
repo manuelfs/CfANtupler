@@ -21,6 +21,8 @@
 #include "DataFormats/PatCandidates/interface/TriggerObjectStandAlone.h"
 #include "DataFormats/L1GlobalTrigger/interface/L1GlobalTriggerReadoutRecord.h"
 #include "DataFormats/MuonReco/interface/MuonSelectors.h"
+#include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "DataFormats/Common/interface/ValueMap.h"
@@ -529,6 +531,62 @@ double getPFIsolation(edm::Handle<pat::PackedCandidateCollection> pfcands,
       taus_againstElectronLooseMVA5_->push_back( tau.tauID("againstElectronLooseMVA5") );
     } // Loop over taus
 
+
+    if(!iEvent.isRealData()) {
+      //////////////// looking for mom f mc_doc //////////////////
+      edm::Handle<reco::GenParticleCollection> mc_doc_coll;
+      iEvent.getByLabel("prunedGenParticles", mc_doc_coll);
+
+      for (unsigned imc=0; imc < mc_doc_coll->size(); imc++) {
+        const reco::GenParticle *mc_doc = &((*mc_doc_coll)[imc]);
+        unsigned mom_ind(0);
+        bool found_mom = false;
+        if (mc_doc->numberOfMothers() > 0) {
+          for (mom_ind=0; mom_ind < mc_doc_coll->size(); mom_ind++) {
+            if (mc_doc->mother(0)!=&((*mc_doc_coll)[mom_ind])) continue;
+            found_mom = true;
+            break;
+          }
+        }
+        if (found_mom) mc_doc_mother_ind->push_back(mom_ind);
+        else mc_doc_mother_ind->push_back(-1);  
+
+        short packed_status_flags = 0;
+        //definitions: https://github.com/cms-sw/cmssw/blob/CMSSW_7_4_X/DataFormats/HepMCCandidate/interface/GenParticle.h
+        packed_status_flags |= mc_doc->isPromptFinalState();
+        packed_status_flags |= mc_doc->isPromptDecayed()<<1;
+        packed_status_flags |= mc_doc->isDirectPromptTauDecayProductFinalState()<<2;
+        packed_status_flags |= mc_doc->isHardProcess()<<3;
+        packed_status_flags |= mc_doc->fromHardProcessFinalState()<<4;
+        packed_status_flags |= mc_doc->fromHardProcessDecayed()<<5;
+        packed_status_flags |= mc_doc->isDirectHardProcessTauDecayProductFinalState()<<6;
+        packed_status_flags |= mc_doc->fromHardProcessBeforeFSR()<<7;
+        packed_status_flags |= mc_doc->isLastCopy()<<8;
+        packed_status_flags |= mc_doc->isLastCopyBeforeFSR()<<9;
+
+        mc_doc_statusFlags->push_back(packed_status_flags);
+      } // Loop over mc_doc_coll
+
+      //////////////// looking for mom of mc_final //////////////////
+      edm::Handle<pat::PackedGenParticleCollection> mc_final_coll;
+      iEvent.getByLabel("packedGenParticles", mc_final_coll);
+
+      for (unsigned imc=0; imc < mc_final_coll->size(); imc++) {
+        const pat::PackedGenParticle *mc_final = &((*mc_final_coll)[imc]);
+        unsigned mom_ind(0);
+        bool found_mom = false;
+        if (mc_final->numberOfMothers() > 0) {
+          for (mom_ind=0; mom_ind < mc_doc_coll->size(); mom_ind++) {
+            if (mc_final->mother(0)!=&((*mc_doc_coll)[mom_ind])) continue;
+            found_mom = true;
+            break;
+          }
+        }
+        if (found_mom) mc_final_mother_ind->push_back(mom_ind);
+        else mc_final_mother_ind->push_back(-1);  
+      }
+    }
+
     // MET
     const pat::MET &met = mets->front();
     *pfType1mets_uncert_JetEnUp_dpx_ = met.shiftedPx(pat::MET::JetEnUp)-met.px();
@@ -617,6 +675,9 @@ double getPFIsolation(edm::Handle<pat::PackedCandidateCollection> pfcands,
     
     //fill the tree    
     if (ownTheTree_){ tree_->Fill(); }
+    (*mc_doc_statusFlags).clear();
+    (*mc_doc_mother_ind).clear();
+    (*mc_final_mother_ind).clear();
     (*trigger_name).clear();
     (*trigger_decision).clear();
     (*trigger_prescalevalue).clear();
@@ -743,6 +804,10 @@ double getPFIsolation(edm::Handle<pat::PackedCandidateCollection> pfcands,
       }
       
       //register the leaves by hand
+      tree_->Branch("mc_doc_statusFlags",&mc_doc_statusFlags);
+      tree_->Branch("mc_doc_mother_ind",&mc_doc_mother_ind);
+      tree_->Branch("mc_final_mother_ind",&mc_final_mother_ind);
+
       tree_->Branch("trigger_decision",&trigger_decision);
       tree_->Branch("trigger_name",&trigger_name);
       tree_->Branch("trigger_prescalevalue",&trigger_prescalevalue);
@@ -927,6 +992,10 @@ double getPFIsolation(edm::Handle<pat::PackedCandidateCollection> pfcands,
     }
     
 
+    mc_doc_statusFlags = new std::vector<short>;
+    mc_doc_mother_ind = new std::vector<int>;
+    mc_final_mother_ind = new std::vector<int>;
+
     trigger_decision = new std::vector<bool>;
     trigger_name = new std::vector<std::string>;
     trigger_prescalevalue = new std::vector<float>;
@@ -1076,6 +1145,10 @@ double getPFIsolation(edm::Handle<pat::PackedCandidateCollection> pfcands,
   }
 
   ~miniAdHocNTupler(){
+    delete mc_doc_statusFlags;
+    delete mc_doc_mother_ind;
+    delete mc_final_mother_ind;
+
     delete trigger_decision;
     delete trigger_name;
     delete trigger_prescalevalue;
@@ -1232,6 +1305,10 @@ double getPFIsolation(edm::Handle<pat::PackedCandidateCollection> pfcands,
   bool useTFileService_;
   long nevents;
 
+
+  std::vector<short> * mc_doc_statusFlags;
+  std::vector<int> * mc_doc_mother_ind;
+  std::vector<int> * mc_final_mother_ind;
 
   std::vector<bool> * trigger_decision;
   std::vector<std::string> * trigger_name;
