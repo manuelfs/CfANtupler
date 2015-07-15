@@ -51,7 +51,7 @@ class miniAdHocNTupler : public NTupler {
  public:
 
   
-double getPFIsolation(edm::Handle<pat::PackedCandidateCollection> pfcands,
+  double getPFIsolation(edm::Handle<pat::PackedCandidateCollection> pfcands,
                         const reco::Candidate* ptcl,  
                         double r_iso_min, double r_iso_max, double kt_scale,
                         bool charged_only) {
@@ -117,7 +117,7 @@ double getPFIsolation(edm::Handle<pat::PackedCandidateCollection> pfcands,
     iso = iso/ptcl->pt();
 
     return iso;
-}
+  }
 
   
   void fill(edm::Event& iEvent){
@@ -448,7 +448,9 @@ double getPFIsolation(edm::Handle<pat::PackedCandidateCollection> pfcands,
     iEvent.getByLabel("IsolatedElectronTracksVeto","pfcandsminiso", el_pfcandsminiso);
     edm::Handle< vector<double> > el_pfcandsminisochgonly;
     iEvent.getByLabel("IsolatedElectronTracksVeto","pfcandsminisochgonly", el_pfcandsminisochgonly);
-  for (size_t it=0; it<el_pfcandsP4->size(); ++it ) {
+    edm::Handle< vector<int> > el_pfcandschg;
+    iEvent.getByLabel("IsolatedElectronTracksVeto","pfcandschg", el_pfcandschg);
+    for (size_t it=0; it<el_pfcandsP4->size(); ++it ) {
       el_tracks_pt_->push_back( el_pfcandsP4->at(it).Pt());
       el_tracks_eta_ -> push_back( el_pfcandsP4->at(it).Eta()); 
       el_tracks_phi_ -> push_back( el_pfcandsP4->at(it).Phi());
@@ -458,6 +460,7 @@ double getPFIsolation(edm::Handle<pat::PackedCandidateCollection> pfcands,
       el_tracks_fromPV_ -> push_back( el_pfcandsfromPV->at(it));
       el_tracks_miniso_ -> push_back( el_pfcandsminiso->at(it));
       el_tracks_miniso_chg_only_ -> push_back( el_pfcandsminisochgonly->at(it));
+      el_tracks_chg_->push_back(el_pfcandschg->at(it));
     }
 
     // cout << "Get muon tracks..." << endl;
@@ -473,6 +476,8 @@ double getPFIsolation(edm::Handle<pat::PackedCandidateCollection> pfcands,
     iEvent.getByLabel("IsolatedMuonTracksVeto","pfcandsminiso", mu_pfcandsminiso);
     edm::Handle< vector<double> > mu_pfcandsminisochgonly;
     iEvent.getByLabel("IsolatedMuonTracksVeto","pfcandsminisochgonly", mu_pfcandsminisochgonly);
+    edm::Handle< vector<int> > mu_pfcandschg;
+    iEvent.getByLabel("IsolatedMuonTracksVeto","pfcandschg", mu_pfcandschg);
     for (size_t it=0; it<mu_pfcandsP4->size(); ++it ) {
       mu_tracks_pt_->push_back( mu_pfcandsP4->at(it).Pt());
       mu_tracks_eta_ -> push_back( mu_pfcandsP4->at(it).Eta()); 
@@ -483,6 +488,7 @@ double getPFIsolation(edm::Handle<pat::PackedCandidateCollection> pfcands,
       mu_tracks_fromPV_ -> push_back( mu_pfcandsfromPV->at(it));
       mu_tracks_miniso_ -> push_back( mu_pfcandsminiso->at(it));
       mu_tracks_miniso_chg_only_ -> push_back( mu_pfcandsminisochgonly->at(it));
+      mu_tracks_chg_->push_back(mu_pfcandschg->at(it));
     }
 
     //    cout << "Get hadronic tracks..." << endl;
@@ -498,7 +504,9 @@ double getPFIsolation(edm::Handle<pat::PackedCandidateCollection> pfcands,
     iEvent.getByLabel("IsolatedHadronicTracksVeto","pfcandsminiso", had_pfcandsminiso);
     edm::Handle< vector<double> > had_pfcandsminisochgonly;
     iEvent.getByLabel("IsolatedHadronicTracksVeto","pfcandsminisochgonly", had_pfcandsminisochgonly);
-   for (size_t it=0; it<had_pfcandsP4->size(); ++it ) {
+    edm::Handle< vector<int> > had_pfcandschg;
+    iEvent.getByLabel("IsolatedHadronicTracksVeto","pfcandschg", had_pfcandschg);
+    for (size_t it=0; it<had_pfcandsP4->size(); ++it ) {
       had_tracks_pt_->push_back( had_pfcandsP4->at(it).Pt());
       had_tracks_eta_ -> push_back( had_pfcandsP4->at(it).Eta()); 
       had_tracks_phi_ -> push_back( had_pfcandsP4->at(it).Phi());
@@ -508,6 +516,7 @@ double getPFIsolation(edm::Handle<pat::PackedCandidateCollection> pfcands,
       had_tracks_fromPV_ -> push_back( had_pfcandsfromPV->at(it));
       had_tracks_miniso_ -> push_back( had_pfcandsminiso->at(it));
       had_tracks_miniso_chg_only_ -> push_back( had_pfcandsminisochgonly->at(it));
+      had_tracks_chg_->push_back(had_pfcandschg->at(it));
     }
   
 
@@ -736,8 +745,9 @@ double getPFIsolation(edm::Handle<pat::PackedCandidateCollection> pfcands,
     (*el_tracks_miniso_chg_only_).clear();
     (*el_tracks_dzpv_).clear();
     (*el_tracks_fromPV_).clear();
+    (*el_tracks_chg_).clear();
 
-     (*mu_tracks_pt_).clear();
+    (*mu_tracks_pt_).clear();
     (*mu_tracks_phi_).clear(); 
     (*mu_tracks_eta_).clear(); 
     (*mu_tracks_E_).clear(); 
@@ -746,6 +756,7 @@ double getPFIsolation(edm::Handle<pat::PackedCandidateCollection> pfcands,
     (*mu_tracks_miniso_chg_only_).clear();
     (*mu_tracks_dzpv_).clear();
     (*mu_tracks_fromPV_).clear();
+    (*mu_tracks_chg_).clear();
 
     (*had_tracks_pt_).clear();
     (*had_tracks_phi_).clear(); 
@@ -756,7 +767,8 @@ double getPFIsolation(edm::Handle<pat::PackedCandidateCollection> pfcands,
     (*had_tracks_miniso_chg_only_).clear();
     (*had_tracks_dzpv_).clear();
     (*had_tracks_fromPV_).clear();
-    
+    (*had_tracks_chg_).clear();
+  
     (*taus_CombinedIsolationDeltaBetaCorrRaw3Hits_).clear();
     (*taus_byLooseCombinedIsolationDeltaBetaCorr3Hits_).clear();
     (*taus_byMediumCombinedIsolationDeltaBetaCorr3Hits_).clear();
@@ -931,6 +943,7 @@ double getPFIsolation(edm::Handle<pat::PackedCandidateCollection> pfcands,
       tree_->Branch("el_tracks_eta",&el_tracks_eta_);
       tree_->Branch("el_tracks_phi",&el_tracks_phi_); 
       tree_->Branch("el_tracks_E",&el_tracks_E_); 
+      tree_->Branch("el_tracks_chg",&el_tracks_chg_);
       tree_->Branch("el_tracks_dzpv",&el_tracks_dzpv_);
       tree_->Branch("el_tracks_fromPV",&el_tracks_fromPV_);
       tree_->Branch("el_tracks_R03_trkiso",&el_tracks_R03_trkiso_);
@@ -941,6 +954,7 @@ double getPFIsolation(edm::Handle<pat::PackedCandidateCollection> pfcands,
       tree_->Branch("mu_tracks_eta",&mu_tracks_eta_);
       tree_->Branch("mu_tracks_phi",&mu_tracks_phi_); 
       tree_->Branch("mu_tracks_E",&mu_tracks_E_); 
+      tree_->Branch("mu_tracks_chg",&mu_tracks_chg_);
       tree_->Branch("mu_tracks_dzpv",&mu_tracks_dzpv_);
       tree_->Branch("mu_tracks_fromPV",&mu_tracks_fromPV_);
       tree_->Branch("mu_tracks_R03_trkiso",&mu_tracks_R03_trkiso_);
@@ -951,6 +965,7 @@ double getPFIsolation(edm::Handle<pat::PackedCandidateCollection> pfcands,
       tree_->Branch("had_tracks_eta",&had_tracks_eta_);
       tree_->Branch("had_tracks_phi",&had_tracks_phi_); 
       tree_->Branch("had_tracks_E",&had_tracks_E_); 
+      tree_->Branch("had_tracks_chg",&had_tracks_chg_);
       tree_->Branch("had_tracks_dzpv",&had_tracks_dzpv_);
       tree_->Branch("had_tracks_fromPV",&had_tracks_fromPV_);
       tree_->Branch("had_tracks_R03_trkiso",&had_tracks_R03_trkiso_);
@@ -1066,6 +1081,7 @@ double getPFIsolation(edm::Handle<pat::PackedCandidateCollection> pfcands,
     el_tracks_phi_ = new std::vector<float>;
     el_tracks_eta_ = new std::vector<float>;
     el_tracks_E_ = new std::vector<float>;
+    el_tracks_chg_ = new std::vector<int>;
     el_tracks_R03_trkiso_ = new std::vector<float>;
     el_tracks_dzpv_ = new std::vector<float>;
     el_tracks_fromPV_ = new std::vector<int>;
@@ -1076,6 +1092,7 @@ double getPFIsolation(edm::Handle<pat::PackedCandidateCollection> pfcands,
     mu_tracks_phi_ = new std::vector<float>;
     mu_tracks_eta_ = new std::vector<float>;
     mu_tracks_E_ = new std::vector<float>;
+    mu_tracks_chg_ = new std::vector<int>;
     mu_tracks_R03_trkiso_ = new std::vector<float>;
     mu_tracks_dzpv_ = new std::vector<float>;
     mu_tracks_fromPV_ = new std::vector<int>;
@@ -1086,6 +1103,7 @@ double getPFIsolation(edm::Handle<pat::PackedCandidateCollection> pfcands,
     had_tracks_phi_ = new std::vector<float>;
     had_tracks_eta_ = new std::vector<float>;
     had_tracks_E_ = new std::vector<float>;
+    had_tracks_chg_ = new std::vector<int>;
     had_tracks_R03_trkiso_ = new std::vector<float>;
     had_tracks_dzpv_ = new std::vector<float>;
     had_tracks_fromPV_ = new std::vector<int>;
@@ -1219,6 +1237,7 @@ double getPFIsolation(edm::Handle<pat::PackedCandidateCollection> pfcands,
     delete el_tracks_phi_;
     delete el_tracks_eta_;
     delete el_tracks_E_;
+    delete el_tracks_chg_;
     delete el_tracks_R03_trkiso_;
     delete el_tracks_dzpv_;
     delete el_tracks_fromPV_;
@@ -1229,6 +1248,7 @@ double getPFIsolation(edm::Handle<pat::PackedCandidateCollection> pfcands,
     delete mu_tracks_phi_;
     delete mu_tracks_eta_;
     delete mu_tracks_E_;
+    delete mu_tracks_chg_;
     delete mu_tracks_R03_trkiso_;
     delete mu_tracks_dzpv_;
     delete mu_tracks_fromPV_;
@@ -1239,6 +1259,7 @@ double getPFIsolation(edm::Handle<pat::PackedCandidateCollection> pfcands,
     delete had_tracks_phi_;
     delete had_tracks_eta_;
     delete had_tracks_E_;
+    delete had_tracks_chg_;
     delete had_tracks_R03_trkiso_;
     delete had_tracks_dzpv_;
     delete had_tracks_fromPV_;
@@ -1382,6 +1403,7 @@ double getPFIsolation(edm::Handle<pat::PackedCandidateCollection> pfcands,
   std::vector<float> * el_tracks_R03_trkiso_;
   std::vector<float> * el_tracks_dzpv_;
   std::vector<int> *   el_tracks_fromPV_;
+  std::vector<int> *   el_tracks_chg_;
   std::vector<float> *   el_tracks_miniso_;
   std::vector<float> *   el_tracks_miniso_chg_only_;
 
@@ -1392,6 +1414,7 @@ double getPFIsolation(edm::Handle<pat::PackedCandidateCollection> pfcands,
   std::vector<float> * mu_tracks_R03_trkiso_;
   std::vector<float> * mu_tracks_dzpv_;
   std::vector<int> *   mu_tracks_fromPV_;
+  std::vector<int> *   mu_tracks_chg_;
   std::vector<float> *   mu_tracks_miniso_;
   std::vector<float> *   mu_tracks_miniso_chg_only_;
   
@@ -1402,6 +1425,7 @@ double getPFIsolation(edm::Handle<pat::PackedCandidateCollection> pfcands,
   std::vector<float> * had_tracks_R03_trkiso_;
   std::vector<float> * had_tracks_dzpv_;
   std::vector<int> *   had_tracks_fromPV_;
+  std::vector<int> *   had_tracks_chg_;
   std::vector<float> *   had_tracks_miniso_;
   std::vector<float> *   had_tracks_miniso_chg_only_;
   
