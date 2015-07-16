@@ -42,7 +42,7 @@ public:
 private:
   virtual bool filter(edm::Event & iEvent, const edm::EventSetup & iSetup);
   double GetTrackMiniIsolation(const TLorentzVector pfCandp4, edm::Handle<pat::PackedCandidateCollection> pfcands,                        
-			       double r_iso_min, double r_iso_max, double kt_scale,
+			       int pdgId, double r_iso_min, double r_iso_max, double kt_scale,
 			       bool charged_only);
 
   // ----------member data ---------------------------

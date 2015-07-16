@@ -215,8 +215,8 @@ bool TrackIsolationFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSe
       pfcands_id->push_back(pfCand.pdgId());
       pfcands_mT->push_back(mT);
       //      std::cout << "Computing track mini isolation" << std::endl;
-      pfcands_miniso->push_back(GetTrackMiniIsolation(p4, packedcands, miniIsoMin_, miniIsoMax_, 10., false));
-      pfcands_miniso_chg_only->push_back(GetTrackMiniIsolation(p4, packedcands, miniIsoMin_, miniIsoMax_, 10., true));
+      pfcands_miniso->push_back(GetTrackMiniIsolation(p4, packedcands, abs(pfCand.pdgId()), miniIsoMin_, miniIsoMax_, 10., false));
+      pfcands_miniso_chg_only->push_back(GetTrackMiniIsolation(p4, packedcands, abs(pfCand.pdgId()), miniIsoMin_, miniIsoMax_, 10., true));
       //      printf("miniso %3.2f, chgonly %3.2f\n", pfcands_miniso->back(), pfcands_miniso_chg_only->back());
       //loop over other PFCandidates in the event to calculate track isolation
       float trkiso = 0.0;
@@ -290,17 +290,40 @@ bool TrackIsolationFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSe
 }
 
 double TrackIsolationFilter::GetTrackMiniIsolation(const TLorentzVector pfCandp4, edm::Handle<pat::PackedCandidateCollection> pfcands,                        
-						   double r_iso_min, double r_iso_max, double kt_scale,
+						   const int pdgId, double r_iso_min, double r_iso_max, double kt_scale,
 						   bool charged_only) {
 
   
   if (pfCandp4.Pt()<5.) return 99999.;
 
   double deadcone_nh(0.), deadcone_ch(0.), deadcone_ph(0.), deadcone_pu(0.);
+  double ptThresh(0.5);
 
+  switch(abs(pdgId)) {
+  case 11:
+    ptThresh = 0;
+    if(fabs(pfCandp4.Eta())>1.479){
+      deadcone_ch = 0.015;
+      deadcone_pu = 0.015;
+      deadcone_ph = 0.08;
+    }
+    break;
+  case 13:
+    deadcone_ch = 0.0001;
+    deadcone_pu = 0.01;
+    deadcone_ph = 0.01;
+    deadcone_nh = 0.01;
+    break;
+  default:
+    deadcone_ch = 0.0001;
+    deadcone_pu = 0.01;
+    deadcone_ph = 0.01;
+    deadcone_nh = 0.01; // Using muon cones for hadronic tracks
+    break;
+  }
+  
   double iso_nh(0.); double iso_ch(0.); 
   double iso_ph(0.); double iso_pu(0.);
-  double ptThresh(0.5);
     
   double r_iso = max(r_iso_min,min(r_iso_max, kt_scale/pfCandp4.Pt()));
   //  printf("Track 1: pt %3.2f, eta %3.2f, phi %3.2f, E %3.2f, r_iso %3.2f\n", pfCandp4.Pt(), pfCandp4.Eta(), pfCandp4.Phi(), pfCandp4.E(), r_iso);
