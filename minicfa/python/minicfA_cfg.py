@@ -20,7 +20,11 @@ globalTags = {
 ######################################
 datasetType = ""
 
+import os
 ## Print out the cfA configuration information
+if len(datasetType) == 0:
+    print "Must set datasetType variable!"
+    os._exit(1)
 print "Using global tag " + globalTags[datasetType] + " selected from datasetType=" + datasetType
 
 ## Switches to treat data and MC differently

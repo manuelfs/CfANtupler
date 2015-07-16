@@ -418,7 +418,7 @@ class miniStringBasedNTupler : public NTupler {
 	// the following weights include variations of renormalization and factorization scales 
 	// and PDF eigenvectors
         edm::Handle<LHEEventProduct> wLHEEventProduct;
-        iEvent.getByLabel("source", wLHEEventProduct);
+        iEvent.getByLabel("externalLHEProducer", wLHEEventProduct);
 	// these event weights are only defined in samples
 	// generated from LHE files
 	if(wLHEEventProduct.isValid()) {
