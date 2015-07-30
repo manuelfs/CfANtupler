@@ -27,18 +27,6 @@ if len(datasetType) == 0:
     os._exit(1)
 print "Using global tag " + globalTags[datasetType] + " selected from datasetType=" + datasetType
 
-## Switches to treat data and MC differently
-## determine from global tag if this is MC or data
-isMC=True
-if datasetType == "PromptReco":
-    isMC=False
-## Production of MiniAOD from data is run in a single step along with the RECO, so the process tag is "RECO"
-## MC is produced in multiple steps and the mini-AOD step is called "PAT"
-processTag="PAT"
-if not isMC:
-    processTag="RECO"
-
-
 import FWCore.ParameterSet.Config as cms
 from Configuration.EventContent.EventContent_cff import *
 process = cms.Process("MinicfA")
@@ -46,6 +34,16 @@ process.load("FWCore.MessageService.MessageLogger_cfi")
 # the following is done to avoid huge log files
 process.MessageLogger.cerr.default.limit = 1000
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
+
+##___________________________HCAL_Noise_Filter________________________________||
+process.load('CommonTools.RecoAlgos.HBHENoiseFilterResultProducer_cfi')
+process.HBHENoiseFilterResultProducer.minZeros = cms.int32(99999)
+
+process.ApplyBaselineHBHENoiseFilter = cms.EDFilter('BooleanFlagFilter',
+   inputLabel = cms.InputTag('HBHENoiseFilterResultProducer','HBHENoiseFilterResult'),
+   taggingMode = cms.bool(True)
+)
+
 
 ## process.SimpleMemoryCheck = cms.Service("SimpleMemoryCheck")
 ## process.Timing = cms.Service("Timing", summaryOnly = cms.untracked.bool(True) )
@@ -135,7 +133,7 @@ process.jecCorL1FastL2L3 = cms.EDProducer("JECWrapper",
 process.photonProducer = cms.EDProducer("PhotonProducer",
                                         photonCollection =  cms.InputTag("slimmedPhotons"),
                                         electronCollection =  cms.InputTag("slimmedElectrons"),
-                                        conversions = cms.InputTag("reducedEgamma", "reducedConversions", processTag),
+                                        conversions = cms.InputTag("reducedEgamma", "reducedConversions"),
                                         beamSpot = cms.InputTag("offlineBeamSpot", "", "RECO"),
                                         ecalRecHitsInputTag_EE = cms.InputTag("reducedEgamma","reducedEERecHits"),
                                         ecalRecHitsInputTag_EB = cms.InputTag("reducedEgamma","reducedEBRecHits"),
@@ -192,6 +190,7 @@ mTCut=cms.double(0)
 process.p = cms.Path(## process.trackIsolationMaker *
                      ## process.egmGsfElectronIDSequence *
                      ## process.electronProducer *
+                     process.HBHENoiseFilterResultProducer*
                      process.jecCorL1Fast *
                      process.jecCorL2L3 *
                      process.jecCorL1FastL2L3 *

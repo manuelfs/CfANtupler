@@ -290,7 +290,7 @@ class miniAdHocNTupler : public NTupler {
     } // Loop over taus
 
     //////////////// Pile up and generator information //////////////////
-    double htEvent = 0.0;
+    *genHT_ = 0.0;
     if(!iEvent.isRealData()) { //Access PU info in MC
       edm::Handle<std::vector< PileupSummaryInfo > >  PupInfo;
       iEvent.getByLabel("addPileupInfo", PupInfo);
@@ -323,19 +323,26 @@ class miniAdHocNTupler : public NTupler {
           int idabs = abs( hepeup_.IDUP[i] );
           if( idabs != 21 && (idabs<1 || idabs>6) ) continue;
           double ptPart = sqrt( pow(hepeup_.PUP[i][0],2) + pow(hepeup_.PUP[i][1],2) );
-          htEvent += ptPart;
+          *genHT_ += ptPart;
         } 
       }
-      *genHT_ = htEvent;
     } // if it's not real data
 
 
     //////////////// Filter decisions and names //////////////////
     edm::Handle<edm::TriggerResults> filterBits;
     std::string processLabel("PAT");
+    // Prompt reconstruction runs in the "RECO" process
     if(iEvent.isRealData()) processLabel="RECO";
     edm::InputTag labfilterBits("TriggerResults","",processLabel);
     iEvent.getByLabel(labfilterBits,filterBits);  
+    // re-recoed data will have the process label "PAT" rather than "RECO";
+    // if the attempt to find data with "RECO" process fails, try "PAT"
+    if(!filterBits.isValid() && iEvent.isRealData()) {
+      std::string newProcessLabel("RECO");
+      edm::InputTag labfilterBitsOther("TriggerResults", "", newProcessLabel);
+      iEvent.getByLabel(labfilterBitsOther,filterBits);  
+    }
     int trackingfailurefilterResult(1);			    
     int goodVerticesfilterResult(1);				    
     int cschalofilterResult(1);						    
@@ -349,7 +356,7 @@ class miniAdHocNTupler : public NTupler {
     int HBHENoisefilterResult(1);						    
     int trkPOG_toomanystripclus53XfilterResult(1);		    
     int hcallaserfilterResult(1);
-			               
+            
     const edm::TriggerNames &fnames = iEvent.triggerNames(*filterBits);
     for (unsigned int i = 0, n = filterBits->size(); i < n; ++i) {
       string filterName = fnames.triggerName(i);
@@ -382,6 +389,16 @@ class miniAdHocNTupler : public NTupler {
     *HBHENoisefilter_decision_				=			    HBHENoisefilterResult; 	    
     *trkPOG_toomanystripclus53Xfilter_decision_		=	    trkPOG_toomanystripclus53XfilterResult;
     *hcallaserfilter_decision_				=                       hcallaserfilterResult;     
+
+    // the HBHE noise filter needs to be recomputed in early 2015 data
+    edm::Handle<bool> filter_h;
+    if(iEvent.isRealData() && iEvent.getByLabel("HBHENoiseFilterResultProducer","HBHENoiseFilterResult",filter_h)) { 
+      cout<<"\nThe old filter decision is :"<<*HBHENoisefilter_decision_<<endl;      
+      iEvent.getByLabel("HBHENoiseFilterResultProducer","HBHENoiseFilterResult", filter_h);
+      cout<<"The new filter decision is :"<<*filter_h<<endl;
+      if(*filter_h){*HBHENoisefilter_decision_ = 1;}
+      if(!(*filter_h)){*HBHENoisefilter_decision_ = 0;}
+    }
 
     //////////////// Trigger decisions and names //////////////////
     edm::Handle<edm::TriggerResults> triggerBits;
