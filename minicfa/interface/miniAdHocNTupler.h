@@ -393,9 +393,7 @@ class miniAdHocNTupler : public NTupler {
     // the HBHE noise filter needs to be recomputed in early 2015 data
     edm::Handle<bool> filter_h;
     if(iEvent.isRealData() && iEvent.getByLabel("HBHENoiseFilterResultProducer","HBHENoiseFilterResult",filter_h)) { 
-      cout<<"\nThe old filter decision is :"<<*HBHENoisefilter_decision_<<endl;      
       iEvent.getByLabel("HBHENoiseFilterResultProducer","HBHENoiseFilterResult", filter_h);
-      cout<<"The new filter decision is :"<<*filter_h<<endl;
       if(*filter_h){*HBHENoisefilter_decision_ = 1;}
       if(!(*filter_h)){*HBHENoisefilter_decision_ = 0;}
     }
