@@ -641,27 +641,27 @@ cfA = cms.EDFilter("minicfa",
                 Class = cms.string('reco::GenJet')
             ),
             
-          ## pfcand = cms.PSet(
-          ##       src = cms.InputTag('packedPFCandidates'),
-          ##       leaves = cms.PSet(
-          ##           vars = cms.vstring(
-          ##               'pdgId:pdgId',
-          ##               'pt:pt',
-          ##               #'pz:pz',
-          ##               #'px:px',
-          ##               #'py:py',
-          ##               'eta:eta',
-          ##               'phi:phi',
-          ##               'energy:energy',
-          ##               'charge:charge',
-          ##               'dz:dz',
-          ##               'dxy:dxy',
-          ##               'fromPV:fromPV'
-          ##            )
-          ##       ),
-          ##       #selection = cms.string('fromPV>1&&pt>5'),
-          ##       Class = cms.string('pat::PackedCandidate')
-          ##   ),
+          pfcand = cms.PSet(
+                src = cms.InputTag('packedPFCandidates'),
+                leaves = cms.PSet(
+                    vars = cms.vstring(
+                        'pdgId:pdgId',
+                        'pt:pt',
+                        #'pz:pz',
+                        #'px:px',
+                        #'py:py',
+                        'eta:eta',
+                        'phi:phi',
+                        'energy:energy',
+                        'charge:charge',
+                        'dz:dz',
+                        'dxy:dxy',
+                        'fromPV:fromPV'
+                     )
+                ),
+                #selection = cms.string('fromPV>1&&pt>5'),
+                Class = cms.string('pat::PackedCandidate')
+            ),
         ),
         ComponentName = cms.string('miniCompleteNTupler'),
         AdHocNPSet = cms.PSet(treeName = cms.string('eventA')),

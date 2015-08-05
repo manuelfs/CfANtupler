@@ -180,8 +180,20 @@ class miniAdHocNTupler : public NTupler {
     edm::Handle<pat::METCollection> mets;
     iEvent.getByLabel("slimmedMETs", mets);
 
+    float met3_px(0.), met3_py(0.);
+    *met3_sumEt_ = 0.;
+
     vector<const pat::PackedCandidate*> el_pfmatch, mu_pfmatch; 
     for (const pat::PackedCandidate &pfc : *pfcands) {
+
+      // Calculating MET 3.0
+      if(fabs(pfc.eta()) < 3.) {
+	met3_px -= pfc.px();
+	met3_py -= pfc.py();
+	*met3_sumEt_ += pfc.pt();
+      }
+
+      // Matching leptons and pfcands
       for (unsigned int ilep(0); ilep < electrons->size(); ilep++) {
         const pat::Electron &lep = (*electrons)[ilep];
         if(el_pfmatch.size() <= ilep) el_pfmatch.push_back(&pfc);
@@ -193,6 +205,10 @@ class miniAdHocNTupler : public NTupler {
         else if(lep.pdgId()==pfc.pdgId() && deltaR(pfc, lep) < deltaR(*(mu_pfmatch[ilep]), lep)) mu_pfmatch[ilep] = &pfc;
       }
     } // Loop over pfcands
+
+    // Calculating MET 3.0
+    *met3_ = sqrt(met3_px*met3_px + met3_py*met3_py);
+    *met3_phi_ = atan2(met3_py, met3_px);
 
     // Finding electron PF match
     for (unsigned int ilep(0); ilep < electrons->size(); ilep++) {
@@ -939,6 +955,9 @@ class miniAdHocNTupler : public NTupler {
       tree_->Branch("raw_met_et",raw_met_et_, "raw_met_et/F");
       tree_->Branch("raw_met_phi",raw_met_phi_, "raw_met_phi/F");
       tree_->Branch("raw_met_sumEt",raw_met_sumEt_, "raw_met_sumEt/F");
+      tree_->Branch("met3",met3_, "met3/F");
+      tree_->Branch("met3_phi",met3_phi_, "met3_phi/F");
+      tree_->Branch("met3_sumEt",met3_sumEt_, "met3_sumEt/F");
 
 
       tree_->Branch("photons_full5x5sigmaIEtaIEta", photons_full5x5sigmaIEtaIEta_);
@@ -1160,6 +1179,9 @@ class miniAdHocNTupler : public NTupler {
     raw_met_et_ = new float;
     raw_met_phi_ = new float;
     raw_met_sumEt_ = new float;
+    met3_ = new float;
+    met3_phi_ = new float;
+    met3_sumEt_ = new float;
 
     photons_full5x5sigmaIEtaIEta_ =     new std::vector<float>;
     photons_pass_el_veto_ =     new std::vector<bool>;
@@ -1316,6 +1338,9 @@ class miniAdHocNTupler : public NTupler {
     delete raw_met_et_;
     delete raw_met_phi_;
     delete raw_met_sumEt_;
+    delete met3_;
+    delete met3_phi_ ;
+    delete met3_sumEt_;
 
     delete photons_full5x5sigmaIEtaIEta_;
     delete photons_pass_el_veto_;
@@ -1480,6 +1505,9 @@ class miniAdHocNTupler : public NTupler {
   float *raw_met_et_;
   float *raw_met_phi_;
   float *raw_met_sumEt_;
+  float *met3_;
+  float *met3_phi_ ;
+  float *met3_sumEt_;
 
   std::vector<float> *photons_full5x5sigmaIEtaIEta_;
   std::vector<bool> *photons_pass_el_veto_;
