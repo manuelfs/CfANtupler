@@ -2,7 +2,7 @@
 ## Submit for src with: crab submit -c crabcfA.py
 
 
-dataset = '/SMS-T2tt_2J_mStop-850_mLSP-100_Tune4C_13TeV-madgraph-tauola/Phys14DR-PU20bx25_tsg_PHYS14_25_V1-v1/MINIAODSIM'
+dataset = '/QCD_Pt_600to800_TuneCUETP8M1_13TeV_pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v3/MINIAODSIM'
 
 jobname = dataset[1:].replace('/','__')
 jobname = jobname.replace(':','___')
@@ -26,6 +26,10 @@ config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 1
 config.Data.publication = True
 config.Data.publishDBS = 'phys03'
+#config.Data.lumiMask = 'https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions15/13TeV/Cert_246908-251252_13TeV_PromptReco_Collisions15_JSON.txt'
 
 config.section_("Site")
-config.Site.storageSite = 'T2_US_UCSD'
+config.Site.storageSite = 'T3_US_UCSB'
+#config.Site.whitelist = ['T2_US_Caltech','T2_US_Florida', 'T2_US_MIT', 'T2_US_Nebraska', 'T2_US_Purdue', 'T2_US_UCSD', 'T2_US_Vanderbilt', 'T2_US_Wisconsin', 'T2_CH_CERN', 'T1_US_FNAL','T2_US_MIT']
+# you may want to comment out this line and force jobs to run in the US
+# only a few datasets (mostly very new ones) will not be accessible
