@@ -13,11 +13,11 @@ for the dataset that you are processing.
 
 Issue the following commands on lxplus:
 
-    cmsrel CMSSW_7_2_2_patch1
-    cd CMSSW_7_2_2_patch1/src
+    cmsrel CMSSW_7_4_6_patch6
+    cd CMSSW_7_4_6_patch6/src
     cmsenv
     git clone git@github.com:manuelfs/CfANtupler
-    scram b -j 4
+    scram b -j$(getconf _NPROCESSORS_ONLN)
     cmsRun CfANtupler/minicfa/python/minicfA_cfg.py
 
 This will create a flat ntuple named configurableAnalysis.root in the
