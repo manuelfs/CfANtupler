@@ -111,12 +111,12 @@ process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
         toGet   = cms.VPSet(
                 cms.PSet(
                         record = cms.string("JetCorrectionsRecord"),
-                        tag    = cms.string("JetCorrectorParametersCollection_Summer15_50nsV2_MC_AK4PFchs"),
+                        tag    = cms.string("JetCorrectorParametersCollection_"+JECs[datasetType]+"_AK4PFchs"),
                         label  = cms.untracked.string("AK4PFchs")
                 ),
                 cms.PSet(
                          record = cms.string("JetCorrectionsRecord"),
-                         tag    = cms.string("JetCorrectorParametersCollection_Summer15_50nsV2_MC_AK4PF"),
+                         tag    = cms.string("JetCorrectorParametersCollection_"+JECs[datasetType]+"_AK4PF"),
                          label  = cms.untracked.string("AK4PF")
                 )
         )
