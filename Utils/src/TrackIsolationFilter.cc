@@ -119,6 +119,7 @@ bool TrackIsolationFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSe
   if(MET.isValid() ){
     metLorentz=MET->at(0).p4();
   }
+  else std::cout<<"TrackIsolationFilter::MetTag invalid: "<<MetInputTag_.label()<<std::endl;
 
   //---------------------------------
   // get PFCandidate collection
@@ -169,7 +170,7 @@ bool TrackIsolationFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSe
       //calculated mT value
       double dphiMET = fabs(pfCand.phi()-metLorentz.phi());
       double mT = sqrt(2 *metLorentz.pt() * pfCand.pt() * (1 - cos(dphiMET)));
-		
+      // if (i==0) printf("MET: %3.2f, Ptl: %3.2f, mT: %3.2f\n", metLorentz.pt(), pfCand.pt(), mT);		
       //to keep track of cuts in debug case (when continues are not used)
       bool goodCand = true;
 		

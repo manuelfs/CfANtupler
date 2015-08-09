@@ -6,6 +6,7 @@
 <use   name="PhysicsTools/UtilAlgos"/>
 <use   name="PhysicsTools/HepMCCandAlgos"/>
 <use   name="PhysicsTools/SelectorUtils"/>
+<use   name="PhysicsTools/PatUtils"/>
 <use   name="DataFormats/PatCandidates"/>
 <use   name="DataFormats/L1Trigger"/>
 <use   name="DataFormats/JetReco"/>

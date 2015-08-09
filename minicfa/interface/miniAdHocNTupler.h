@@ -131,7 +131,7 @@ class miniAdHocNTupler : public NTupler {
 
     //////////////// Fat jets //////////////////
     edm::Handle<pat::JetCollection> jets;
-    iEvent.getByLabel("slimmedJets", jets);
+    iEvent.getByLabel("patJetsReapplyJEC", jets);
 
     JetDefinition jet_def_12(antikt_algorithm, 1.2);
     //    vector<vector<PseudoJet>> fjets_vvector(0);
@@ -180,17 +180,17 @@ class miniAdHocNTupler : public NTupler {
     edm::Handle<pat::METCollection> mets;
     iEvent.getByLabel("slimmedMETs", mets);
 
-    float met3_px(0.), met3_py(0.);
-    *met3_sumEt_ = 0.;
+    float raw_met3_px(0.), raw_met3_py(0.);
+    *raw_met3_sumEt_ = 0.;
 
     vector<const pat::PackedCandidate*> el_pfmatch, mu_pfmatch; 
     for (const pat::PackedCandidate &pfc : *pfcands) {
 
-      // Calculating MET 3.0
+      // Calculating raw MET 3.0
       if(fabs(pfc.eta()) < 3.) {
-	met3_px -= pfc.px();
-	met3_py -= pfc.py();
-	*met3_sumEt_ += pfc.pt();
+	raw_met3_px -= pfc.px();
+	raw_met3_py -= pfc.py();
+	*raw_met3_sumEt_ += pfc.pt();
       }
 
       // Matching leptons and pfcands
@@ -207,8 +207,8 @@ class miniAdHocNTupler : public NTupler {
     } // Loop over pfcands
 
     // Calculating MET 3.0
-    *met3_ = sqrt(met3_px*met3_px + met3_py*met3_py);
-    *met3_phi_ = atan2(met3_py, met3_px);
+    *raw_met3_ = sqrt(raw_met3_px*raw_met3_px + raw_met3_py*raw_met3_py);
+    *raw_met3_phi_ = atan2(raw_met3_py, raw_met3_px);
 
     // Finding electron PF match
     for (unsigned int ilep(0); ilep < electrons->size(); ilep++) {
@@ -465,7 +465,28 @@ class miniAdHocNTupler : public NTupler {
     if(L1trigger) cout<<"Level 1 decision: "<<L1trigger->decision()<<endl;
 
 
-    //isolated pf candidates as found by TrackIsolationMaker                                                                               
+    // corrected mets
+    edm::Handle< float > pfType1metsSummer15V2_et;
+    edm::Handle< float > pfType1metsSummer15V2_phi;
+    edm::Handle< float > pfType1metsSummer15V2_sumEt;
+    iEvent.getByLabel("pfTypeIMETLatestJEC","pfmet", pfType1metsSummer15V2_et);
+    iEvent.getByLabel("pfTypeIMETLatestJEC","pfmetPhi", pfType1metsSummer15V2_phi);
+    iEvent.getByLabel("pfTypeIMETLatestJEC","pfsumet", pfType1metsSummer15V2_sumEt);
+    *pfType1metsSummer15V2_et_ = *pfType1metsSummer15V2_et;
+    *pfType1metsSummer15V2_phi_ = *pfType1metsSummer15V2_phi;
+    *pfType1metsSummer15V2_sumEt_ = *pfType1metsSummer15V2_sumEt;
+
+    edm::Handle< float > pfType1metsSummer15V2_NoHF_et;
+    edm::Handle< float > pfType1metsSummer15V2_NoHF_phi;
+    edm::Handle< float > pfType1metsSummer15V2_NoHF_sumEt;
+    iEvent.getByLabel("pfTypeIMETLatestJECNoHF","pfmet", pfType1metsSummer15V2_NoHF_et);
+    iEvent.getByLabel("pfTypeIMETLatestJECNoHF","pfmetPhi", pfType1metsSummer15V2_NoHF_phi);
+    iEvent.getByLabel("pfTypeIMETLatestJECNoHF","pfsumet", pfType1metsSummer15V2_NoHF_sumEt);
+    *pfType1metsSummer15V2_NoHF_et_ = *pfType1metsSummer15V2_NoHF_et;
+    *pfType1metsSummer15V2_NoHF_phi_ = *pfType1metsSummer15V2_NoHF_phi;
+    *pfType1metsSummer15V2_NoHF_sumEt_ = *pfType1metsSummer15V2_NoHF_sumEt;
+    
+    //isolated pf candidates as found by TrackIsolationMaker                                                                              
     // cout << "Get electron tracks..." << endl;
     edm::Handle< vector<TLorentzVector> > el_pfcandsP4;
     iEvent.getByLabel("IsolatedElectronTracksVeto","pfcands", el_pfcandsP4);
@@ -940,6 +961,13 @@ class miniAdHocNTupler : public NTupler {
       tree_->Branch("fjets30_energy",&fjets30_energy);
       tree_->Branch("fjets30_m",&fjets30_m);
 
+      tree_->Branch("pfType1metsSummer15V2_et",pfType1metsSummer15V2_et_, "pfType1metsSummer15V2_et/F");
+      tree_->Branch("pfType1metsSummer15V2_phi",pfType1metsSummer15V2_phi_, "pfType1metsSummer15V2_phi/F");
+      tree_->Branch("pfType1metsSummer15V2_sumEt",pfType1metsSummer15V2_sumEt_, "pfType1metsSummer15V2_sumEt/F");
+      tree_->Branch("pfType1metsSummer15V2_NoHF_et",pfType1metsSummer15V2_NoHF_et_, "pfType1metsSummer15V2_NoHF_et/F");
+      tree_->Branch("pfType1metsSummer15V2_NoHF_phi",pfType1metsSummer15V2_NoHF_phi_, "pfType1metsSummer15V2_NoHF_phi/F");
+      tree_->Branch("pfType1metsSummer15V2_NoHF_sumEt",pfType1metsSummer15V2_NoHF_sumEt_, "pfType1metsSummer15V2_NoHF_sumEt/F");
+      
       tree_->Branch("pfType1mets_uncert_JetEnUp_dpx", pfType1mets_uncert_JetEnUp_dpx_, "pfType1mets_uncert_JetEnUp_dpx/F");
       tree_->Branch("pfType1mets_uncert_JetEnUp_dpy", pfType1mets_uncert_JetEnUp_dpy_, "pfType1mets_uncert_JetEnUp_dpy/F");
       tree_->Branch("pfType1mets_uncert_JetEnUp_sumEt", pfType1mets_uncert_JetEnUp_sumEt_, "pfType1mets_uncert_JetEnUp_sumEt/F");
@@ -955,9 +983,9 @@ class miniAdHocNTupler : public NTupler {
       tree_->Branch("raw_met_et",raw_met_et_, "raw_met_et/F");
       tree_->Branch("raw_met_phi",raw_met_phi_, "raw_met_phi/F");
       tree_->Branch("raw_met_sumEt",raw_met_sumEt_, "raw_met_sumEt/F");
-      tree_->Branch("met3",met3_, "met3/F");
-      tree_->Branch("met3_phi",met3_phi_, "met3_phi/F");
-      tree_->Branch("met3_sumEt",met3_sumEt_, "met3_sumEt/F");
+      tree_->Branch("raw_met3",raw_met3_, "raw_met3/F");
+      tree_->Branch("raw_met3_phi",raw_met3_phi_, "raw_met3_phi/F");
+      tree_->Branch("raw_met3_sumEt",raw_met3_sumEt_, "raw_met3_sumEt/F");
 
 
       tree_->Branch("photons_full5x5sigmaIEtaIEta", photons_full5x5sigmaIEtaIEta_);
@@ -1164,6 +1192,12 @@ class miniAdHocNTupler : public NTupler {
     fjets30_energy = new std::vector<float>;
     fjets30_m =     new std::vector<float>;
 
+    pfType1metsSummer15V2_et_    = new float;
+    pfType1metsSummer15V2_phi_   = new float;
+    pfType1metsSummer15V2_sumEt_ = new float;
+    pfType1metsSummer15V2_NoHF_et_    = new float;
+    pfType1metsSummer15V2_NoHF_phi_   = new float;
+    pfType1metsSummer15V2_NoHF_sumEt_ = new float;
     pfType1mets_uncert_JetEnUp_dpx_ =     new float;
     pfType1mets_uncert_JetEnUp_dpy_ =    new float;
     pfType1mets_uncert_JetEnUp_sumEt_ =    new float;
@@ -1179,9 +1213,9 @@ class miniAdHocNTupler : public NTupler {
     raw_met_et_ = new float;
     raw_met_phi_ = new float;
     raw_met_sumEt_ = new float;
-    met3_ = new float;
-    met3_phi_ = new float;
-    met3_sumEt_ = new float;
+    raw_met3_ = new float;
+    raw_met3_phi_ = new float;
+    raw_met3_sumEt_ = new float;
 
     photons_full5x5sigmaIEtaIEta_ =     new std::vector<float>;
     photons_pass_el_veto_ =     new std::vector<bool>;
@@ -1323,6 +1357,13 @@ class miniAdHocNTupler : public NTupler {
     delete fjets30_energy;
     delete fjets30_m;
 
+    delete pfType1metsSummer15V2_et_;
+    delete pfType1metsSummer15V2_phi_;
+    delete pfType1metsSummer15V2_sumEt_;
+    delete pfType1metsSummer15V2_NoHF_et_;
+    delete pfType1metsSummer15V2_NoHF_phi_;
+    delete pfType1metsSummer15V2_NoHF_sumEt_;
+
     delete pfType1mets_uncert_JetEnUp_dpx_;
     delete pfType1mets_uncert_JetEnUp_dpy_;
     delete pfType1mets_uncert_JetEnUp_sumEt_;
@@ -1338,9 +1379,9 @@ class miniAdHocNTupler : public NTupler {
     delete raw_met_et_;
     delete raw_met_phi_;
     delete raw_met_sumEt_;
-    delete met3_;
-    delete met3_phi_ ;
-    delete met3_sumEt_;
+    delete raw_met3_;
+    delete raw_met3_phi_ ;
+    delete raw_met3_sumEt_;
 
     delete photons_full5x5sigmaIEtaIEta_;
     delete photons_pass_el_veto_;
@@ -1489,6 +1530,13 @@ class miniAdHocNTupler : public NTupler {
   std::vector<float> * fjets30_energy;
   std::vector<float> * fjets30_m;
 
+  float *pfType1metsSummer15V2_et_;
+  float *pfType1metsSummer15V2_phi_;
+  float *pfType1metsSummer15V2_sumEt_;
+  float *pfType1metsSummer15V2_NoHF_et_;
+  float *pfType1metsSummer15V2_NoHF_phi_;
+  float *pfType1metsSummer15V2_NoHF_sumEt_;
+  
   float *pfType1mets_uncert_JetEnUp_dpx_;
   float *pfType1mets_uncert_JetEnUp_dpy_;
   float *pfType1mets_uncert_JetEnUp_sumEt_;
@@ -1505,9 +1553,9 @@ class miniAdHocNTupler : public NTupler {
   float *raw_met_et_;
   float *raw_met_phi_;
   float *raw_met_sumEt_;
-  float *met3_;
-  float *met3_phi_ ;
-  float *met3_sumEt_;
+  float *raw_met3_;
+  float *raw_met3_phi_ ;
+  float *raw_met3_sumEt_;
 
   std::vector<float> *photons_full5x5sigmaIEtaIEta_;
   std::vector<bool> *photons_pass_el_veto_;

@@ -300,7 +300,7 @@ cfA = cms.EDFilter("minicfa",
                 Class = cms.string('pat::Muon')
                 ),
 
-                 pfType1mets = cms.PSet(
+                 pfType1mets_default = cms.PSet(
                   src = cms.InputTag("slimmedMETs"),
                    leaves = cms.PSet(
                     vars = cms.vstring('et:et', 
@@ -325,6 +325,59 @@ cfA = cms.EDFilter("minicfa",
                 ),
                 Class = cms.string('pat::MET')
             ),
+
+            ## pfType1mets_Summer15V2MC = cms.PSet(
+            ##       src = cms.InputTag("slimmedMETsSummer15V2MC"),
+            ##        leaves = cms.PSet(
+            ##         vars = cms.vstring('et:et', 
+            ##             'phi:phi', 
+            ##             'ex:px', 
+            ##             'ey:py',
+            ##             'NeutralEMFraction:NeutralEMFraction',
+            ##             'NeutralHadEtFraction:NeutralHadEtFraction',
+            ##             'ChargedEMEtFraction:ChargedEMEtFraction',
+            ##             'ChargedHadEtFraction:ChargedHadEtFraction',
+            ##             'MuonEtFraction:MuonEtFraction',
+            ##             'Type6EtFraction:Type6EtFraction',
+            ##             'Type7EtFraction:Type7EtFraction',
+            ##             'sumEt:sumEt', 
+            ##             ## 'unCPhi:uncorrectedPhi', 
+            ##             ## 'unCPt:uncorrectedPt',
+            ##             'gen_et:genMET.pt',
+            ##             'gen_phi:genMET.phi',
+            ##             'Sig:mEtSig'
+            ##             ## 'Significance:significance'
+            ##             )
+            ##     ),
+            ##     Class = cms.string('pat::MET')
+            ## ),
+
+            ## pfType1mets_Summer15V2MC_noHF = cms.PSet(
+            ##       src = cms.InputTag("slimmedMETsNoHF"),
+            ##        leaves = cms.PSet(
+            ##         vars = cms.vstring('et:et', 
+            ##             'phi:phi', 
+            ##             'ex:px', 
+            ##             'ey:py',
+            ##             'NeutralEMFraction:NeutralEMFraction',
+            ##             'NeutralHadEtFraction:NeutralHadEtFraction',
+            ##             'ChargedEMEtFraction:ChargedEMEtFraction',
+            ##             'ChargedHadEtFraction:ChargedHadEtFraction',
+            ##             'MuonEtFraction:MuonEtFraction',
+            ##             'Type6EtFraction:Type6EtFraction',
+            ##             'Type7EtFraction:Type7EtFraction',
+            ##             'sumEt:sumEt', 
+            ##             ## 'unCPhi:uncorrectedPhi', 
+            ##             ## 'unCPt:uncorrectedPt',
+            ##             'gen_et:genMET.pt',
+            ##             'gen_phi:genMET.phi',
+            ##             'Sig:mEtSig'
+            ##             ## 'Significance:significance'
+            ##             )
+            ##     ),
+            ##     Class = cms.string('pat::MET')
+            ## ),
+  
 
             photons = cms.PSet(
                 src = cms.InputTag("slimmedPhotons"),
@@ -558,8 +611,9 @@ cfA = cms.EDFilter("minicfa",
                 Class = cms.string('pat::Electron')
             ),
 
+      
             jets_AK4 = cms.PSet(
-                src = cms.InputTag("slimmedJets"),
+                src = cms.InputTag("patJetsReapplyJEC"),
                 leaves = cms.PSet(
                     basicKinematicLeaves,
                     vars = cms.vstring(
@@ -641,27 +695,27 @@ cfA = cms.EDFilter("minicfa",
                 Class = cms.string('reco::GenJet')
             ),
             
-          pfcand = cms.PSet(
-                src = cms.InputTag('packedPFCandidates'),
-                leaves = cms.PSet(
-                    vars = cms.vstring(
-                        'pdgId:pdgId',
-                        'pt:pt',
-                        #'pz:pz',
-                        #'px:px',
-                        #'py:py',
-                        'eta:eta',
-                        'phi:phi',
-                        'energy:energy',
-                        'charge:charge',
-                        'dz:dz',
-                        'dxy:dxy',
-                        'fromPV:fromPV'
-                     )
-                ),
-                #selection = cms.string('fromPV>1&&pt>5'),
-                Class = cms.string('pat::PackedCandidate')
-            ),
+          ## pfcand = cms.PSet(
+          ##       src = cms.InputTag('packedPFCandidates'),
+          ##       leaves = cms.PSet(
+          ##           vars = cms.vstring(
+          ##               'pdgId:pdgId',
+          ##               'pt:pt',
+          ##               #'pz:pz',
+          ##               #'px:px',
+          ##               #'py:py',
+          ##               'eta:eta',
+          ##               'phi:phi',
+          ##               'energy:energy',
+          ##               'charge:charge',
+          ##               'dz:dz',
+          ##               'dxy:dxy',
+          ##               'fromPV:fromPV'
+          ##            )
+          ##       ),
+          ##       #selection = cms.string('fromPV>1&&pt>5'),
+          ##       Class = cms.string('pat::PackedCandidate')
+          ##   ),
         ),
         ComponentName = cms.string('miniCompleteNTupler'),
         AdHocNPSet = cms.PSet(treeName = cms.string('eventA')),

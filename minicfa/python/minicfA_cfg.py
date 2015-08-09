@@ -15,6 +15,18 @@ globalTags = {
 # standard set of conditions for 50 ns bunch spacing 74X MC
     "74X_MC-50ns": "MCRUN2_74_V9A::All"}
 
+JECs = {
+# Global tag for early 2015 collisions data
+    "PromptReco": "Summer15_50nsV2_MC", 
+# GT for PHYS14 25ns (asymptotic alignment and calibration scenario)
+    "PHYS14": "PHYS14_25_V2", 
+# most 50 ns samples use asymptotic conditions, not startup conditions
+#              "74X_MC_50ns_startup": "MCRUN2_74_V8::All", 
+# standard set of conditions for 25 ns bunch spacing 74X MC
+    "74X_MC-25ns": "Summer15_25nsV2_MC", 
+# standard set of conditions for 50 ns bunch spacing 74X MC
+    "74X_MC-50ns": "Summer15_50nsV2_MC"}
+
 ######################################
 # The following line must be changed #
 ######################################
@@ -26,7 +38,14 @@ if len(datasetType) == 0:
     print "Must set datasetType variable!"
     os._exit(1)
 print "Using global tag " + globalTags[datasetType] + " selected from datasetType=" + datasetType
+print "Using JECs: " + JECs[datasetType]
 
+collisionData = False
+applyResidual = False
+if datasetType=='PromptReco':
+    collisionData = True
+
+    
 import FWCore.ParameterSet.Config as cms
 from Configuration.EventContent.EventContent_cff import *
 process = cms.Process("MinicfA")
@@ -35,21 +54,16 @@ process.load("FWCore.MessageService.MessageLogger_cfi")
 process.MessageLogger.cerr.default.limit = 1000
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 
-##___________________________HCAL_Noise_Filter________________________________||
-process.load('CommonTools.RecoAlgos.HBHENoiseFilterResultProducer_cfi')
-process.HBHENoiseFilterResultProducer.minZeros = cms.int32(99999)
-
-process.ApplyBaselineHBHENoiseFilter = cms.EDFilter('BooleanFlagFilter',
-   inputLabel = cms.InputTag('HBHENoiseFilterResultProducer','HBHENoiseFilterResult'),
-   taggingMode = cms.bool(True)
-)
+#process.dump=cms.EDAnalyzer('EventContentAnalyzer')
 
 
 ## process.SimpleMemoryCheck = cms.Service("SimpleMemoryCheck")
 ## process.Timing = cms.Service("Timing", summaryOnly = cms.untracked.bool(True) )
 ## process.CPU = cms.Service("CPU")
-## process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(True) )
-
+process.options = cms.untracked.PSet(
+    allowUnscheduled = cms.untracked.bool(True),
+    #wantSummary = cms.untracked.bool(True)
+)
 process.source = cms.Source("PoolSource",
                             fileNames = cms.untracked.vstring(
                             #'/store/cmst3/user/gpetrucc/miniAOD/v1/TT_Tune4C_13TeV-pythia8-tauola_PU_S14_PAT.root'
@@ -61,8 +75,8 @@ process.source = cms.Source("PoolSource",
                             #'/store/mc/Phys14DR/GJets_HT-600toInf_Tune4C_13TeV-madgraph-tauola/MINIAODSIM/PU20bx25_PHYS14_25_V1-v1/10000/682323F3-1774-E411-8F6A-002590A371D4.root'
                             '/store/mc/RunIISpring15DR74/TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/Asympt25ns_MCRUN2_74_V9-v2/00000/06B5178E-F008-E511-A2CF-00261894390B.root'
                             #'/store/data/Run2015B/SingleMu/MINIAOD/PromptReco-v1/000/251/028/00000/705C6746-3C26-E511-92AC-02163E0139CF.root'
-                            #'file:/home/users/manuelf/data/TT_Tune4C_13TeV-pythia8-tauola_MINIAODSIM.root'
-                            #'file:/home/users/jbradmil/PHYS14/CMSSW_7_2_2_patch1/src/086903CE-2773-E411-A9B8-001E673967C5.root'
+                            #'file:1618D7D0-FDFE-E411-A98B-00259074AE94.root'
+                            #'file:/home/users/jbradmil/commissioningDPS/CMSSW_7_4_6_patch6/src/086903CE-2773-E411-A9B8-001E673967C5.root'
                                 )
                                 )
 
@@ -72,10 +86,116 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 process.load("Configuration.Geometry.GeometryIdeal_cff")
 process.load('Configuration/EventContent/EventContent_cff')
 process.load('JetMETCorrections.Configuration.DefaultJEC_cff')
+
+
 from JetMETCorrections.Configuration.DefaultJEC_cff import *
 from JetMETCorrections.Configuration.JetCorrectionServices_cff import *
 
-process.GlobalTag.globaltag = globalTags[datasetType]   
+process.GlobalTag.globaltag = globalTags[datasetType]
+
+
+ ## ----------------------------------------------------------------------------------------------
+## JECs
+## ----------------------------------------------------------------------------------------------
+
+# get the JECs (disabled by default)
+# this requires the user to download the .db file from this twiki
+# https://twiki.cern.ch/twiki/bin/viewauth/CMS/JECDataMC
+JetTag = cms.InputTag('slimmedJets')
+#if len(jecfile)>0:
+JECPatch = cms.string('sqlite_file:CfANtupler/JEC/'+JECs[datasetType]+'.db')
+process.load("CondCore.DBCommon.CondDBCommon_cfi")
+from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
+process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
+        connect = JECPatch,
+        toGet   = cms.VPSet(
+                cms.PSet(
+                        record = cms.string("JetCorrectionsRecord"),
+                        tag    = cms.string("JetCorrectorParametersCollection_Summer15_50nsV2_MC_AK4PFchs"),
+                        label  = cms.untracked.string("AK4PFchs")
+                ),
+                cms.PSet(
+                         record = cms.string("JetCorrectionsRecord"),
+                         tag    = cms.string("JetCorrectorParametersCollection_Summer15_50nsV2_MC_AK4PF"),
+                         label  = cms.untracked.string("AK4PF")
+                )
+        )
+)
+process.es_prefer_jec = cms.ESPrefer("PoolDBESSource","jec")
+
+from PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff import patJetCorrFactorsUpdated
+process.patJetCorrFactorsReapplyJEC = patJetCorrFactorsUpdated.clone(
+    src     = cms.InputTag("slimmedJets"),
+    levels  = ['L1FastJet',
+               'L2Relative',
+               'L3Absolute'],
+               payload = 'AK4PFchs' # Make sure to choose the appropriate levels and payload here!
+)
+if applyResidual: process.patJetCorrFactorsReapplyJEC.levels.append('L2L3Residual')
+        
+from PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff import patJetsUpdated
+process.patJetsReapplyJEC = patJetsUpdated.clone(
+    jetSource = cms.InputTag("slimmedJets"),
+    jetCorrFactorsSource = cms.VInputTag(cms.InputTag("patJetCorrFactorsReapplyJEC"))
+)
+        
+        #process.Baseline += process.patJetCorrFactorsReapplyJEC
+        #process.Baseline += process.patJetsReapplyJEC
+        
+JetTag = cms.InputTag('patJetsReapplyJEC')
+
+## Correct MET 
+## ref: https://github.com/cms-met/cmssw/blob/METCorUnc74X/PhysicsTools/PatAlgos/test/corMETFromMiniAOD.py
+METTag = cms.InputTag('slimmedMETs')
+#    if is74X:
+from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
+runMetCorAndUncFromMiniAOD(process,
+                           isData=collisionData, # controls gen met
+                           pfCandColl=cms.InputTag("packedPFCandidates"),
+                           postfix="TypeICorr"
+)
+if collisionData:
+    if not applyResidual: #skip residuals for data if not used
+        process.patPFMetT1T2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+        process.patPFMetT1T2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+        process.patPFMetT2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+        process.patPFMetT2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+        process.shiftedPatJetEnDown.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+        process.shiftedPatJetEnUp.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+corrMETTag = cms.InputTag('slimmedMETsTypeICorr')
+
+
+# use only PF cands with |eta|<3 (no HF) -- only for 74X
+process.noHFCands = cms.EDFilter("CandPtrSelector",
+                                 src=cms.InputTag("packedPFCandidates"),
+                                 cut=cms.string("abs(pdgId)!=1 && abs(pdgId)!=2 && abs(eta)<3.0")
+                                 )
+runMetCorAndUncFromMiniAOD(process,
+                           isData=collisionData, # controls gen met
+                           pfCandColl=cms.InputTag("noHFCands"),
+                           postfix="TypeICorrNoHF"
+)
+if collisionData:
+    if not applyResidual: #skip residuals for data if not used
+        process.patPFMetT1T2CorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
+        process.patPFMetT1T2SmearCorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
+        process.patPFMetT2CorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
+        process.patPFMetT2SmearCorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
+        process.shiftedPatJetEnDownNoHF.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+        process.shiftedPatJetEnUpNoHF.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+            
+
+##___________________________HCAL_Noise_Filter________________________________||
+process.load('CommonTools.RecoAlgos.HBHENoiseFilterResultProducer_cfi')
+process.HBHENoiseFilterResultProducer.minZeros = cms.int32(99999)
+
+## process.ApplyBaselineHBHENoiseFilter = cms.EDFilter('BooleanFlagFilter',
+##    inputLabel = cms.InputTag('HBHENoiseFilterResultProducer','HBHENoiseFilterResult'),
+##    taggingMode = cms.bool(True)
+## )
+
+
+
 
 ### Loading branches
 process.load("CfANtupler/minicfa.branchesminicfA_cfi")
@@ -86,47 +206,21 @@ process.TFileService = cms.Service("TFileService",
                                    fileName = cms.string('cfA.root')
                                    )
 
-## we don't really need this anymore since we save all pfcands
-## process.trackIsolationMaker = cms.EDProducer("TrackIsolationMaker",
-##                                              pfCandidatesTag = cms.InputTag("packedPFCandidates"),
-##                                              vertexInputTag = cms.InputTag("offlineSlimmedPrimaryVertices"),
-##                                              dR_ConeSize = cms.double(0.3),
-##                                              dz_CutValue = cms.double(0.05),
-##                                              minPt_PFCandidate = cms.double(5.0), #looser than the likely analysis selection
-##                                              maxIso_PFCandidate = cms.double(0.25) #very loose
-##                                              )
-
-#Electron Identification for PHYS 14
-## from PhysicsTools.SelectorUtils.tools.vid_id_tools import *
-## process.load("RecoEgamma.ElectronIdentification.egmGsfElectronIDs_cfi")
-## process.egmGsfElectronIDs.physicsObjectSrc = cms.InputTag('slimmedElectrons')
-## from PhysicsTools.SelectorUtils.centralIDRegistry import central_id_registry
-## process.egmGsfElectronIDSequence = cms.Sequence(process.egmGsfElectronIDs)
-## my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_PHYS14_PU20bx25_V0_miniAOD_cff']
-## for idmod in my_id_modules:
-##     setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
 
 
-##     process.electronProducer = cms.EDProducer("ElectronProducer",
-##                                               electronsInputTag = cms.InputTag("slimmedElectrons"),
-##                                               electronVetoIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-PHYS14-PU20bx25-V0-miniAOD-standalone-veto"),
-##                                               electronLooseIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-PHYS14-PU20bx25-V0-miniAOD-standalone-loose"),
-##                                               electronMediumIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-PHYS14-PU20bx25-V0-miniAOD-standalone-medium"),
-##                                               electronTightIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-PHYS14-PU20bx25-V0-miniAOD-standalone-tight")
-##                                               )
 
 process.jecCorL1Fast = cms.EDProducer("JECWrapper",
-                                      jetsInputTag = cms.InputTag("slimmedJets"),
+                                      jetsInputTag = cms.InputTag("patJetsReapplyJEC"),
                                       jec_name = cms.string("ak4PFCHSL1Fastjet")
                                       )
 
 process.jecCorL2L3 = cms.EDProducer("JECWrapper",
-                                    jetsInputTag = cms.InputTag("slimmedJets"),
+                                    jetsInputTag = cms.InputTag("patJetsReapplyJEC"),
                                     jec_name = cms.string("ak4PFCHSL2L3")
                                     )
 
 process.jecCorL1FastL2L3 = cms.EDProducer("JECWrapper",
-                                          jetsInputTag = cms.InputTag("slimmedJets"),
+                                          jetsInputTag = cms.InputTag("patJetsReapplyJEC"),
                                           jec_name = cms.string("ak4PFCHSL1FastL2L3")
                                           )
 
@@ -144,6 +238,14 @@ process.pdfProducer = cms.EDProducer("PDFProducer",
                                      hepmcHandle = cms.string("generator")
                                      )
 
+from CfANtupler.Utils.metProducer_cfi import metProducer
+process.pfTypeIMETLatestJEC = cms.EDProducer("METProducer",
+                                             METTag=cms.InputTag("slimmedMETsTypeICorr")
+)
+process.pfTypeIMETLatestJECNoHF = cms.EDProducer("METProducer",
+                                             METTag=cms.InputTag("slimmedMETsTypeICorrNoHF")
+)
+
 from CfANtupler.Utils.trackIsolationMaker_cfi import trackIsolationFilter
 from CfANtupler.Utils.trackIsolationMaker_cfi import trackIsolationCounter
 
@@ -158,7 +260,8 @@ dz_CutValue = cms.double(0.1),
 minPt_PFCandidate = cms.double(5.0),
 isoCut = cms.double(0.2),
 pdgId = cms.int32(11),
-mTCut=cms.double(0)
+mTCut=cms.double(0),
+METTag=corrMETTag
 )
 process.IsolatedMuonTracksVeto = trackIsolationFilter.clone(
 doTrkIsoVeto= False,
@@ -171,7 +274,8 @@ dz_CutValue = cms.double(0.1),
 minPt_PFCandidate = cms.double(5.0),
 isoCut = cms.double(0.2),
 pdgId = cms.int32(13),
-mTCut=cms.double(0)
+mTCut=cms.double(0),
+METTag=corrMETTag
 )
 process.IsolatedHadronicTracksVeto = trackIsolationFilter.clone(
 doTrkIsoVeto= False,
@@ -184,21 +288,25 @@ dz_CutValue = cms.double(0.1),
 minPt_PFCandidate = cms.double(10.0),
 isoCut = cms.double(0.1),
 pdgId = cms.int32(211),
-mTCut=cms.double(0)
+mTCut=cms.double(0),
+METTag=corrMETTag
 )
 
-process.p = cms.Path(## process.trackIsolationMaker *
-                     ## process.egmGsfElectronIDSequence *
-                     ## process.electronProducer *
+process.p = cms.Path(process.patJetCorrFactorsReapplyJEC*
+                     process.patJetsReapplyJEC*
                      process.HBHENoiseFilterResultProducer*
+                     #process.ApplyBaselineHBHENoiseFilter*
                      process.jecCorL1Fast *
                      process.jecCorL2L3 *
                      process.jecCorL1FastL2L3 *
                      process.photonProducer *
                      process.pdfProducer *
+                     process.pfTypeIMETLatestJEC*
+                     process.pfTypeIMETLatestJECNoHF*
                      process.IsolatedElectronTracksVeto *
                      process.IsolatedMuonTracksVeto *
                      process.IsolatedHadronicTracksVeto
+#                     process.dump
                      )
 
 process.outpath = cms.EndPath(cms.ignore(process.cfA))
