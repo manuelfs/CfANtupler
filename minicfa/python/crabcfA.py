@@ -2,7 +2,7 @@
 ## Submit for src with: crab submit -c crabcfA.py
 
 
-dataset = '/HTMHT/Run2015B-PromptReco-v1/MINIAOD'
+dataset = ''
 
 jobname = dataset[1:].replace('/','__')
 jobname = jobname.replace(':','___')
@@ -18,6 +18,7 @@ config.General.workArea = 'out_crab'
 config.section_("JobType")
 config.JobType.pluginName = 'Analysis'
 config.JobType.psetName = 'CfANtupler/minicfa/python/minicfA_cfg.py'
+config.JobType.inputFiles = ['CfANtupler/JEC/Summer15_25nsV2_MC.db','CfANtupler/JEC/Summer15_50nsV2_MC.db']
 
 config.section_("Data")
 config.Data.inputDataset = dataset

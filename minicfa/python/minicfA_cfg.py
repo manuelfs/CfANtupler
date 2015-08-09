@@ -103,7 +103,7 @@ process.GlobalTag.globaltag = globalTags[datasetType]
 # https://twiki.cern.ch/twiki/bin/viewauth/CMS/JECDataMC
 JetTag = cms.InputTag('slimmedJets')
 #if len(jecfile)>0:
-JECPatch = cms.string('sqlite_file:CfANtupler/JEC/'+JECs[datasetType]+'.db')
+JECPatch = cms.string('sqlite_file:'+JECs[datasetType]+'.db')
 process.load("CondCore.DBCommon.CondDBCommon_cfi")
 from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
 process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
