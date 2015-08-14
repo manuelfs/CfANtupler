@@ -17,7 +17,7 @@ globalTags = {
 
 JECs = {
 # Global tag for early 2015 collisions data
-    "PromptReco": "Summer15_50nsV2_MC", 
+    "PromptReco": "Summer15_50nsV4_DATA", 
 # GT for PHYS14 25ns (asymptotic alignment and calibration scenario)
     "PHYS14": "PHYS14_25_V2", 
 # most 50 ns samples use asymptotic conditions, not startup conditions
@@ -44,6 +44,8 @@ collisionData = False
 applyResidual = False
 if datasetType=='PromptReco':
     collisionData = True
+    applyResidual = True
+    print "Applying residual JECs"
 
     
 import FWCore.ParameterSet.Config as cms
@@ -75,7 +77,8 @@ process.source = cms.Source("PoolSource",
                             #'/store/mc/Phys14DR/GJets_HT-600toInf_Tune4C_13TeV-madgraph-tauola/MINIAODSIM/PU20bx25_PHYS14_25_V1-v1/10000/682323F3-1774-E411-8F6A-002590A371D4.root'
                             '/store/mc/RunIISpring15DR74/TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/Asympt25ns_MCRUN2_74_V9-v2/00000/06B5178E-F008-E511-A2CF-00261894390B.root'
                             #'/store/data/Run2015B/SingleMu/MINIAOD/PromptReco-v1/000/251/028/00000/705C6746-3C26-E511-92AC-02163E0139CF.root'
-                            #'file:1618D7D0-FDFE-E411-A98B-00259074AE94.root'
+                            #'file:HTMHT_2A828FCA-182C-E511-9AF1-02163E01299A.root'
+                            #'file:04412314-B92E-E511-97A6-002618943981.root'
                             #'file:/home/users/jbradmil/commissioningDPS/CMSSW_7_4_6_patch6/src/086903CE-2773-E411-A9B8-001E673967C5.root'
                                 )
                                 )
@@ -156,12 +159,12 @@ runMetCorAndUncFromMiniAOD(process,
 )
 if collisionData:
     if not applyResidual: #skip residuals for data if not used
-        process.patPFMetT1T2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-        process.patPFMetT1T2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-        process.patPFMetT2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-        process.patPFMetT2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-        process.shiftedPatJetEnDown.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
-        process.shiftedPatJetEnUp.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+        process.patPFMetT1T2CorrTypeICorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+        process.patPFMetT1T2SmearCorrTypeICorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+        process.patPFMetT2CorrTypeICorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+        process.patPFMetT2SmearCorrTypeICorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+        process.shiftedPatJetEnDownTypeICorr.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+        process.shiftedPatJetEnUpTypeICorr.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
 corrMETTag = cms.InputTag('slimmedMETsTypeICorr')
 
 
@@ -177,12 +180,12 @@ runMetCorAndUncFromMiniAOD(process,
 )
 if collisionData:
     if not applyResidual: #skip residuals for data if not used
-        process.patPFMetT1T2CorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
-        process.patPFMetT1T2SmearCorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
-        process.patPFMetT2CorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
-        process.patPFMetT2SmearCorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
-        process.shiftedPatJetEnDownNoHF.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
-        process.shiftedPatJetEnUpNoHF.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+        process.patPFMetT1T2CorrTypeICorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
+        process.patPFMetT1T2SmearCorrTypeICorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
+        process.patPFMetT2CorrTypeICorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
+        process.patPFMetT2SmearCorrTypeICorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
+        process.shiftedPatJetEnDownTypeICorrNoHF.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+        process.shiftedPatJetEnUpTypeICorrNoHF.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
             
 
 ##___________________________HCAL_Noise_Filter________________________________||
