@@ -31,6 +31,7 @@ config.Data.publishDBS = 'phys03'
 
 config.section_("Site")
 config.Site.storageSite = 'T3_US_UCSB'
-#config.Site.whitelist = ['T2_US_Caltech','T2_US_Florida', 'T2_US_MIT', 'T2_US_Nebraska', 'T2_US_Purdue', 'T2_US_UCSD', 'T2_US_Vanderbilt', 'T2_US_Wisconsin', 'T1_US_FNAL','T2_US_MIT']
+#config.Site.whitelist = ['T2_US_Caltech','T2_US_Florida', 'T2_US_MIT', 'T2_US_Nebraska', 'T2_US_Purdue', 'T2_US_UCSD', 'T2_US_Vanderbilt', 'T2_US_Wisconsin', 'T1_US_FNAL','T2_US_MIT', 'T3_US_UCSB']
+config.Site.blacklist = ['T1_RU_JINR']
 # you may want to uncomment this line and force jobs to run in the US
 # only a few datasets (mostly very new ones) will not be accessible
