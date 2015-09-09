@@ -337,7 +337,27 @@ class miniAdHocNTupler : public NTupler {
         for(size_t i = 2; i < iMax; ++i) {
           if( hepeup_.ISTUP[i] != 1 ) continue;
           int idabs = abs( hepeup_.IDUP[i] );
-          if( idabs != 21 && (idabs<1 || idabs>6) ) continue;
+	  if( (idabs != 21 && (idabs<1 || idabs>=6) ) ) continue;
+
+	  int mother = hepeup_.MOTHUP[i].first - 1;//MOTHUP starts at 1 instead of 0
+	  int motherf = hepeup_.MOTHUP[i].second - 1;
+	  int gmom = hepeup_.MOTHUP[mother].first - 1;
+	  int gmomf = hepeup_.MOTHUP[motherf].first - 1;
+	  int gdad = hepeup_.MOTHUP[mother].second - 1;
+	  int gdadf = hepeup_.MOTHUP[motherf].second - 1;
+	  vector<int> ancestry;
+	  ancestry.push_back( abs(hepeup_.IDUP[mother]) );
+	  ancestry.push_back( abs(hepeup_.IDUP[motherf]) );
+	  ancestry.push_back( abs(hepeup_.IDUP[gmom]) );
+	  ancestry.push_back( abs(hepeup_.IDUP[gmomf]) );
+	  ancestry.push_back( abs(hepeup_.IDUP[gdad]) );
+	  ancestry.push_back( abs(hepeup_.IDUP[gdadf]) );
+	  bool topdaught =false;
+	  for(int i=0; i<6; i++){
+	    if(ancestry.at(i)==6 || ancestry.at(i)==24 || ancestry.at(i)==23){ topdaught=true; break;}
+	  }
+	  if(topdaught) continue;
+          
           double ptPart = sqrt( pow(hepeup_.PUP[i][0],2) + pow(hepeup_.PUP[i][1],2) );
           *genHT_ += ptPart;
         } 

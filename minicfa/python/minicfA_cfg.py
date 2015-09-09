@@ -30,7 +30,7 @@ JECs = {
 ######################################
 # The following line must be changed #
 ######################################
-datasetType = ""
+datasetType = "74X_MC-25ns"
 
 import os
 ## Print out the cfA configuration information
@@ -68,6 +68,8 @@ process.options = cms.untracked.PSet(
 )
 process.source = cms.Source("PoolSource",
                             fileNames = cms.untracked.vstring(
+                             'file:pickevents.root'
+        # '/store/mc/RunIISpring15DR74/TTJets_HT-600to800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/Asympt25ns_MCRUN2_74_V9-v1/30000/0C1CDF5E-3B3B-E511-84DE-0CC47A4D99E6.root'        
                             #'/store/cmst3/user/gpetrucc/miniAOD/v1/TT_Tune4C_13TeV-pythia8-tauola_PU_S14_PAT.root'
                             #'/store/mc/Phys14DR/TT_Tune4C_13TeV-pythia8-tauola/MINIAODSIM/PU20bx25_tsg_PHYS14_25_V1-v1/00000/06843FC5-8370-E411-9B8C-0025905A60AA.root'
                             # '/store/mc/Phys14DR/TT_Tune4C_13TeV-pythia8-tauola/MINIAODSIM/PU40bx25_tsg_PHYS14_25_V1-v1/00000/06E41ADB-7870-E411-8850-0025905A605E.root'
@@ -75,7 +77,7 @@ process.source = cms.Source("PoolSource",
                             #'file:/home/users/manuelf/cmssw/cfa/CMSSW_7_2_2_patch1/src/CfANtupler/minicfa/python/TT_Tune4C_13TeV-pythia8-tauola_MINIAODSIM.root'
                             #'/store/mc/Phys14DR/GJets_HT-600toInf_Tune4C_13TeV-madgraph-tauola/MINIAODSIM/PU20bx25_PHYS14_25_V1-v1/00000/086903CE-2773-E411-A9B8-001E673967C5.root'
                             #'/store/mc/Phys14DR/GJets_HT-600toInf_Tune4C_13TeV-madgraph-tauola/MINIAODSIM/PU20bx25_PHYS14_25_V1-v1/10000/682323F3-1774-E411-8F6A-002590A371D4.root'
-                            '/store/mc/RunIISpring15DR74/TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/Asympt25ns_MCRUN2_74_V9-v2/00000/06B5178E-F008-E511-A2CF-00261894390B.root'
+                            #'/store/mc/RunIISpring15DR74/TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/Asympt25ns_MCRUN2_74_V9-v2/00000/06B5178E-F008-E511-A2CF-00261894390B.root'
                             #'/store/data/Run2015B/SingleMu/MINIAOD/PromptReco-v1/000/251/028/00000/705C6746-3C26-E511-92AC-02163E0139CF.root'
                             #'file:HTMHT_2A828FCA-182C-E511-9AF1-02163E01299A.root'
                             #'file:04412314-B92E-E511-97A6-002618943981.root'
